@@ -189,8 +189,8 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     public VersionedReference<Integer> createCaratReference();
 
     //  Returns the current text value contained in this DocumentModel adjusted with
-    //  the specified offset
-    // returns the full text if returnoffset is false or offset is set to {0,0}
+    //  the specified offset, limited by the max visible lines
+    // returns the full text if returnoffset is false
 
     String getoffsetText(int[] offset, boolean returnoffset);
 

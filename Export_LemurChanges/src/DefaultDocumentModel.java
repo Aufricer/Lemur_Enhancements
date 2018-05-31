@@ -585,9 +585,14 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             createComposite(offset);
         } else {
             createComposite();
+            String Fulltext = composite;
+            // need to set that null otherwise the resetText function in e.g. GUIUPDATE may take the wrong composite
+            composite = null;
+            return Fulltext;
         }
         return composite;
     }
+
 
     @Override
     public void updateCarat(boolean absolute_or_relative, int value, boolean increment){
@@ -930,7 +935,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
 
         public void addSelect(int[] valuepair) {
-            int[] tmpfield;
+            int[] tmpfield = {0,0};
             int pos1;
             int i;
 
@@ -944,12 +949,16 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
                     valuepair[1] = pos1;
                 }
             }
+
+            tmpfield[0] = 0;
+            tmpfield[1] = 0;
             // adjusting to textlength or ignore
-            if (valuepair[0] > getText().length()) return;
-            if (valuepair[1] > getText().length()) {
-                valuepair[1] = getText().length();
+            if (valuepair[0] > getoffsetText(tmpfield,false).length()) return;
+            if (valuepair[1] > getoffsetText(tmpfield,false).length()) {
+                valuepair[1] = getoffsetText(tmpfield,false).length();
                 System.out.println("Selectors size adjusted to textlenght");
             }
+
 
             // if we dont have an anchor yet we just add the value pair
             if (ancfield.size() == 0) {
@@ -1052,7 +1061,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
 
         public void delSelect(int[] valuepair) {
-            int[] tmpfield;
+            int[] tmpfield ={0,0};
             int pos1;
             int del =0;
             int i;
@@ -1069,9 +1078,11 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             }
 
             // adjusting to textlength or ignore
-            if (valuepair[0] > getText().length()) return;
-            if (valuepair[1] > getText().length()) {
-                valuepair[1] = getText().length();
+            tmpfield[0] = 0;
+            tmpfield[1] = 0;
+            if (valuepair[0] > getoffsetText(tmpfield,false).length()) return;
+            if (valuepair[1] > getoffsetText(tmpfield,false).length()) {
+                valuepair[1] = getoffsetText(tmpfield,false).length();
             }
 
             // find position of valuepair
