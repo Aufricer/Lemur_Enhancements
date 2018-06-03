@@ -1131,6 +1131,9 @@ public class TextEntryComponent extends AbstractGuiComponent
         selectorNode.setName("selectorNode");
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
+        // if this method is called before the textbox is set this routine crashs
+        if (textBox == null) return;
+
         // each anchor is an independent textselect area
         // we find the position in text
         for (i = 0; i< anc.size(); i++) {
