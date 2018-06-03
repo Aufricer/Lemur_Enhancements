@@ -795,6 +795,10 @@ public class TextEntryComponent extends AbstractGuiComponent
                 // characters never make it directly to the
                 // document
                 if( evt.getKeyChar() >= 32 ) {
+                    if (textselect ==1) {
+                        model.deleteSelectedText(false);
+                        model.emptyAnchors();
+                    }
                     model.insert(evt.getKeyChar());
                     evt.setConsumed();
                     //resetText(); ...should be automatic now
@@ -1284,6 +1288,55 @@ public class TextEntryComponent extends AbstractGuiComponent
             }
      return cb;
     }
+
+    public int [] getTextlineYX(int [] coordinatesXY) {
+        int theposition[] = {0,0};
+        float y;
+        int i =0;
+        boolean last =false;
+
+        float xmin = bitmapText.getWorldTranslation().getX();
+        float xmax = textBox.width+xmin;
+
+        float ymin = bitmapText.getWorldTranslation().getY();
+        float ymax = ymin- textBox.height;
+
+        // the coordinates are not inside the textbox
+        if ((!(coordinatesXY[0] >=xmin && coordinatesXY[0] <= xmax)) || (!(coordinatesXY[1] >=ymax && coordinatesXY[1] <= ymin)))
+            return null ;
+
+        // get line first
+        y = ymin- bitmapText.getLineHeight();
+        while (y >= ymax && y > coordinatesXY[1]) {
+            y -= bitmapText.getLineHeight();
+            i++;
+        }
+        // out of visible lines
+        if (i > maxLinecount-1) {
+            last = true;
+            i = maxLinecount-1;
+        }
+        i =  i+ model.getOffset_Y();
+        if (i + 1 > model.getLineCount()) {
+            i =model.getLineCount()-1;
+            last = true;
+        }
+        theposition[0] = i;
+        // if we have an offset and the line is not shown or we have clicked
+        // below the last line we get the end of the choosen line
+        if ((offset_x > model.getLine(i).length()) || last){
+            theposition[1] = model.getLine(i).length();
+        } else { // otherwise we iterate till the end of our coordinate or textrow
+            String row = model.getLine(i).substring(offset_x).toString();
+            for (i = 0; i< row.length(); i++) {
+                if (getVisibleWidth(row.substring(0,i).toString())+xmin >= coordinatesXY[0]) break;
+            }
+            theposition[1] = i+offset_x;
+        }
+        return theposition;
+    }
+
+
 }
 
 

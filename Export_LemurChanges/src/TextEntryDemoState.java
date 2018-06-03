@@ -125,15 +125,53 @@ public class TextEntryDemoState extends BaseAppState {
 
  
         // Position the window and pop it up                                                             
-        window.setLocalTranslation(400, 400, 100);                 
-        getState(PopupState.class).showPopup(window, closeCommand);
-        // Schließt, wenn außerhalb geklickt wurde und führt zusätzlich das übergebene Command (closeCommand) aus
-    //        getState(PopupState.class).showPopup(window); //würde das Command nicht ausführen
-    // Also so ähnlich wie die on Close Methode...
+        window.setLocalTranslation(400, 400, 100);
 
-        // Man muss im PopUpState nach der richtigen Methode suchen! Nachfolgend z.B. bleibt der Fokus auf dem GUI Element
-   //     getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,null);
-   //     PopupState.ClickMode.ConsumeAndClose; --> Geht weg und der andere Klick wird weiter benutzt
+
+        getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,null);
+
+        MouseEventControl.addListenersToSpatial(window,
+                new DefaultMouseListener() {
+                    private boolean gedrueckt = false;
+                    private int[] pos = {0,0};
+
+                    @Override
+                    public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
+                        if (event.isPressed() && event.getButtonIndex() == 0) {
+                            gedrueckt = true;
+                        } else {gedrueckt = false;}
+                        pos[0] = event.getX();
+                        pos[1] = event.getY();
+                    }
+
+                    @Override
+                    public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
+                        if (gedrueckt) {
+                            window.setLocalTranslation(window.getLocalTranslation().add(event.getX()-pos[0],event.getY()-pos[1],0));
+                            pos[0] = event.getX();
+                            pos[1] = event.getY();
+                        }
+                    }
+
+                    @Override
+                    public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+
+
+                    }
+
+                    @Override
+                    public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+                        gedrueckt = false;
+                    }
+
+                });
+
+        txtfieldselector pickandscrollme = new txtfieldselector();
+        MouseEventControl.addListenersToSpatial(textField,pickandscrollme);
+
+
+
+
     }
     
     @Override   
@@ -268,7 +306,81 @@ public class TextEntryDemoState extends BaseAppState {
             textField.setselectcolor(new ColorRGBA(0,0,255,0.25f));
             }
         }
+
+    private class txtfieldselector extends DefaultMouseListener {
+        private boolean press = false;
+        private boolean press2 = false;
+        private int before =0;
+        private int nextstep = 0;
+
+
+        @Override
+        public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
+            if (event.isPressed()) {
+                int [] p = {event.getX(),event.getY()};
+                p =  textField.getTextlinesbyCoordinates(p);
+                // if we have a new position
+                if (!(null ==  document.findCaratValue(p))) {
+                    int cvalue = (int) document.findCaratValue(p);
+                    document.updateCarat(true, cvalue, true);
+                }
+                //  initialstart =document.getCarat();
+                before = document.getCarat();;
+                if (event.getButtonIndex() == 0)  press = true;
+                if (event.getButtonIndex() == 1) press2 = true;
+
+            } else {
+                press = false;
+                press2 = false;
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
+
+            // move the textfield by mousewheel and get the new position if pressed
+            if (!(event.getDeltaWheel() ==0)) {
+                if (event.getDeltaWheel() >0) {
+                    document.up();
+                } else {
+                    document.down();
+                }
+                if (press2) nextstep = document.getCarat();
+
+
+
+            } // get the new position if mouse is moved
+            if ((press) && (event.getDeltaWheel() ==0)) {
+                int [] p = {event.getX(),event.getY()};
+                p =  textField.getTextlinesbyCoordinates(p);
+                // if we have a new position
+                if (!(null ==  document.findCaratValue(p))) {
+                    nextstep = (int) document.findCaratValue(p);
+                }
+            }
+
+            if ((press || (press2 && !(event.getDeltaWheel() ==0))) && !(before == nextstep)) {
+                document.reverseSelect(before,nextstep);
+                before = nextstep;
+            }
+        }
+
+        @Override
+        public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+
+        }
+
+        @Override
+        public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+        }
+    }
+
+
+
+
 }
+
+
 
 
 

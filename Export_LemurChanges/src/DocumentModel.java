@@ -261,6 +261,13 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     String getselectedText();
 
+    // finds the value of potential Carat basing on the given location
+    // returns null if the Carat would be out of text or location is null
+    // reverse of findPosition
+
+    Integer findCaratValue(int[] location);
+
+
     // returns a versioned Reference of the Anchor
     // can be used to check for updates of textselect areas
 

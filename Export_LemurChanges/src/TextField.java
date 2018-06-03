@@ -272,5 +272,8 @@ public class TextField extends Panel {
         text.textadjust(startline,fulladjust,wordwrap);
     }
 
+    public int[] getTextlinesbyCoordinates(int [] coordinatesXY) {
+        return text.getTextlineYX(coordinatesXY);
+    }
 }
 

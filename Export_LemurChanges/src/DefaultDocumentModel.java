@@ -777,6 +777,24 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         return helper;
     }
 
+    @Override
+    public Integer findCaratValue(int[] location) {
+        int i;
+        int lng=0;
+
+        if (location == null) return null;
+        // check if the position is inside the current text
+        if ((location[0] >= lines.size()) || location[0]<0) return null;
+        if (location[1] > lines.get(location[0]).length() || location[1]<0) return null;
+
+        lng = location[1];
+
+        for (i = 0; i < location[0];i++) {
+            lng += lines.get(i).length()+1;
+        }
+        return lng;
+    }
+
     // end of new stuff
 
     private class Carat implements VersionedObject<Integer> {

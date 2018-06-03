@@ -395,5 +395,10 @@ public class DocumentModelFilter implements DocumentModel {
         return delegate.getoffsetText(offset,returnoffset);
     }
 
+    @Override
+    public Integer findCaratValue(int[] location) {
+        return delegate.findCaratValue(location);
+    }
+
 }
 
