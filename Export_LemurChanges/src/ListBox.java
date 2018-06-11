@@ -406,7 +406,12 @@ public class ListBox<T> extends Panel {
                         // not sure if this is necessary but this way we can make sure
                         // that style and ID are always a derivative from the original selector
                         // + we are following the initial approach in the library
+
+                        // Copy the color and use it otherwise we would get the default color and style back
+                        ColorRGBA selcol = ((QuadBackgroundComponent) selector.getBackground()).getColor();
                         selector = new Panel(tmpElementId, tmpstyle);
+                        ((QuadBackgroundComponent) selector.getBackground()).setColor(selcol);
+
                         CursorEventControl.addListenersToSpatial(selector, selectorlistener);
                     }
                     // we also add to which row the Panel will be added
@@ -607,7 +612,19 @@ public class ListBox<T> extends Panel {
     public SelectionModel.SelectionMode getSelectionMode() {
         return selection.getSelectionMode();
     }
- 
+
+    public void setSelectorColor(ColorRGBA newColor, boolean keepAlpha) {
+        float Alpha;
+        if (keepAlpha) {
+            Alpha = selector.getAlpha();
+        } else {
+            Alpha = newColor.getAlpha();
+        }
+        QuadBackgroundComponent selbg = (QuadBackgroundComponent) selector.getBackground();
+        selbg.setColor(new ColorRGBA(newColor.r, newColor.g, newColor.b, Alpha));
+        refreshSelector();
+    }
+
     /**
      *  Listens to the whole list to intercept things like mouse wheel events
      *  and click to focus.  This should be all we need for hover scrolling as

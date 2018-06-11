@@ -100,7 +100,9 @@ public class ListBoxDemoState extends BaseAppState {
         buttons.addChild(new ActionButton(new CallMethodAction(this, "insert")));
         buttons.addChild(new ActionButton(new CallMethodAction(this, "remove")));
         buttons.addChild(new ActionButton(new CallMethodAction(this, "SelectMode")));
- 
+        buttons.addChild(new ActionButton(new CallMethodAction(this, "Color")));
+
+
         // Add a close button to both show that the layout is working and
         // also because it's better UX... even if the popup will close if
         // you click outside of it.
@@ -164,13 +166,18 @@ public class ListBoxDemoState extends BaseAppState {
 
     }
 
+    protected void Color () {
+        listBox.setSelectorColor(ColorRGBA.randomColor(),true);
+    }
+
+
 
     private class CloseCommand implements Command<Object> {
-        
         public void execute( Object src ) {
             getState(MainMenuState.class).closeChild(ListBoxDemoState.this);
         }
     }
+
 }
 
 
