@@ -1339,6 +1339,9 @@ public class TextEntryComponent extends AbstractGuiComponent
         return theposition;
     }
 
+    public String getfullText() {
+        return model.getfulltext();
+    }
 
 }
 

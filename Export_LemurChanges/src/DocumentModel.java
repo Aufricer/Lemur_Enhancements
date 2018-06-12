@@ -188,6 +188,10 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
      */
     public VersionedReference<Integer> createCaratReference();
 
+    // returns the full text of the document to avoid
+    // using the getoffsetText and make a field  each time
+    String getfulltext();
+
     //  Returns the current text value contained in this DocumentModel adjusted with
     //  the specified offset, limited by the max visible lines
     // returns the full text if returnoffset is false

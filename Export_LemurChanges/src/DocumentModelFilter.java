@@ -391,6 +391,11 @@ public class DocumentModelFilter implements DocumentModel {
     }
 
     @Override
+    public String getfulltext() {
+        return delegate.getfulltext();
+    }
+
+    @Override
     public String getoffsetText(int[] offset, boolean returnoffset) {
         return delegate.getoffsetText(offset,returnoffset);
     }

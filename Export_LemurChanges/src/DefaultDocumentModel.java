@@ -578,6 +578,12 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     }
 
     @Override
+    public String getfulltext(){
+        int z[] = {0,0};
+        return getoffsetText(z,false);
+    }
+
+    @Override
     public String getoffsetText(int[] offset,boolean returnoffset) {
         // gives us the text with the given offset in X- and Y direction and limited by maxLineCount
         // or returns the whole text
