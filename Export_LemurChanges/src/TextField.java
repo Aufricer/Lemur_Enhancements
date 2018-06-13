@@ -138,9 +138,7 @@ public class TextField extends Panel {
     }
 
     public String getText() {
-        //  return text == null ? null : text.getText();
-        // changed to always get the fulltext back
-        return text == null ? null : text.getfullText();
+          return text == null ? null : text.getText();
     }
 
     @StyleAttribute(value="textVAlignment", lookupDefault=false)

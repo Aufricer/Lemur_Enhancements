@@ -514,7 +514,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public void setText( String text ) {
-        if( text != null && text.equals(model.getText()) )
+        if( text != null && text.equals(model.getfulltext()) )
             return;
 
         model.setText(text);
