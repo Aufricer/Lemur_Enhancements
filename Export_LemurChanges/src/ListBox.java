@@ -463,7 +463,10 @@ public class ListBox<T> extends Panel {
     protected Panel getListCell( int row, int col, Panel existing ) {
         T value = model.get(row);
         Panel cell = cellRenderer.getView(value, false, existing);
- 
+
+        // we add an invisible background to that cell - as the clickListener otherwise would only apply to the
+        // parts of the cell where text is shown
+        cell.setBackground(new QuadBackgroundComponent(new ColorRGBA(ColorRGBA.BlackNoAlpha)));
         if( cell != existing ) {
             // Transfer the click listener                  
             CursorEventControl.addListenersToSpatial(cell, clickListener);
