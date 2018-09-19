@@ -880,61 +880,65 @@ public class ListBox<T> extends Panel {
         }
     }
 
-    private String[] prepareaddValue (String[] stringfield) {
+    private String[] prepareaddValue (String[] stringfield, boolean replacenull) {
         String[] tmpvalue = new String[availableColumns];
         if (stringfield.length != tmpvalue.length) {
             int i;
             for (i=0; i<stringfield.length;i++) {
                 if (i == availableColumns) break;
-                tmpvalue[i] = stringfield[i];
+                if ((replacenull) && (stringfield[i] == null)) {
+                    tmpvalue[i] = "";
+                } else {
+                    tmpvalue[i] = stringfield[i];
+                }
             }
             for (int z = i; z<=availableColumns-1;z++) {
                 tmpvalue[z] ="";
             }
         } else {
+            if (replacenull) {
+                for (int i =0;i<stringfield.length;i++){
+                    if (stringfield[i] == null) stringfield[i] ="";
+                }
+            }
             return  stringfield;
         }
         return tmpvalue;
     }
 
-    private int getselectedrow() {
-        int selection=0;
-        Set<Integer> selectionset = getSelectionModel().getMultiSelection();
-        if( selectionset == null ) {
-            selection = getModel().size();
-        }  else {
-            // we insert always after last entry so we don't need to care for the position
-            // of the selectors we already have
-            Iterator<Integer> itset = selectionset.iterator();
-            while (itset.hasNext()) {
-                selection = itset.next()+1;
-            }
-        }
-        return selection;
-    }
-
     public void lbaddvalue(String singlecolumn) {
         String[] x = new String[1];
         x[0] = singlecolumn;
-        multiadd(model.size(),prepareaddValue(x));
+        multiadd(model.size(),prepareaddValue(x,false));
     }
 
     public void lbaddvalue(String[] values) {
         int pos = getModel().size();
-        multiadd(pos,prepareaddValue(values));
+        multiadd(pos,prepareaddValue(values,false));
+    }
+
+    public void lbaddvalue(String[] values, boolean insertnullvalues) {
+        int pos = getModel().size();
+        multiadd(pos,prepareaddValue(values,!insertnullvalues));
     }
 
     public void lbaddvalue(int row,String singlecolumn) {
         if (row > model.size()) return;
         String[] x = new String[1];
         x[0] = singlecolumn;
-        multiadd(row,prepareaddValue(x));
+        multiadd(row,prepareaddValue(x,false));
     }
 
     public void lbaddvalue(int row,String[] values) {
         if (row > model.size()) return;
-        multiadd(row,prepareaddValue(values)); // insert at position
+        multiadd(row,prepareaddValue(values,false)); // insert at position
     }
+
+    public void lbbaddvalue(int row, String[] values, boolean insertnullvalues) {
+        if (row > model.size()) return;
+        multiadd(row,prepareaddValue(values,!insertnullvalues)); // insert at position
+    }
+
 
     private void multiadd(int row, String[] value) {
         getModel().add(row, (T) value[0]);
