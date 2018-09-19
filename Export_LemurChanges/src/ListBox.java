@@ -1020,6 +1020,10 @@ public class ListBox<T> extends Panel {
         }
     }
 
+    public Slider gethorizontalSlider() {
+        return sliderhor;
+    }
+
     private void resetModelhorRange() {
         baseIndexhor.setMaximum(availableColumns-getGridPanel().getVisibleColumns());
     }
