@@ -1019,7 +1019,7 @@ public class ListBox<T> extends Panel {
             if (sliderhor.getParent() == null) layout.addChild(sliderhor, BorderLayout.Position.South);
             resetModelhorRange();
         } else {
-            if (!(sliderhor.getParent() == null)) sliderhor.getParent().detachChild(sliderhor);
+            if (!(sliderhor.getParent() == null))   this.layout.removeChild(sliderhor);
             baseIndexhor.setValue(0);
         }
     }
