@@ -458,7 +458,7 @@ public class ListBox<T> extends Panel {
 
                     Vector3f size = selectedCell.getSize().clone();
                     Vector3f loc = selectedCell.getLocalTranslation();
-                    Vector3f pos = selectorAreaOrigin.add(loc.x, loc.y, loc.z + size.z);
+                    Vector3f pos = selectorAreaOrigin.add(loc.x, loc.y, loc.z + size.z+2f);
                     selector.setLocalTranslation(pos);
 
                     // adjust size.y for multicolumn listboxes
