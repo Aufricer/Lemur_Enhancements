@@ -1,44 +1,48 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2016, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Function;
-import com.simsilica.lemur.core.VersionedReference;
+package com.simsilica.lemur.text;
 
 import java.util.List;
 import java.util.Objects;
+
+import com.google.common.base.Function;
+
+import com.simsilica.lemur.TextField;
+import com.simsilica.lemur.core.VersionedReference;
 
 /**
  *  A convenient base class for DocumentModel filtering that simply passes
@@ -53,21 +57,21 @@ import java.util.Objects;
  *  @author    Paul Speed
  */
 public class DocumentModelFilter implements DocumentModel {
- 
+
     private DocumentModel delegate;
     private Function<Character, Character> inputTransform;
     private Function<String, String> outputTransform;
     private String lastOutput = null;
     private String lastTransformedOutput = null;
     private long version;
-    
+
     public DocumentModelFilter() {
         this(new DefaultDocumentModel());
     }
-    
-    public DocumentModelFilter(DocumentModel delegate ) {
+
+    public DocumentModelFilter( DocumentModel delegate ) {
         this.delegate = delegate;
-    } 
+    }
 
     /**
      *  Returns the delegate document model for which this document model
@@ -93,16 +97,16 @@ public class DocumentModelFilter implements DocumentModel {
         this.outputTransform = f;
         version++;
     }
-    
+
     public Function<String, String> getOutputTransform() {
         return outputTransform;
     }
-    
+
     /**
      *  Sets an optional input transform that will be used to convert
      *  all input from setText() or insert().  If the function returns null
      *  for any character then that character is skipped in the input.
-     *  If the supplied function is null then no input transformation is 
+     *  If the supplied function is null then no input transformation is
      *  done by default.
      */
     public void setInputTransform( Function<Character, Character> f ) {
@@ -112,11 +116,11 @@ public class DocumentModelFilter implements DocumentModel {
         this.inputTransform = f;
         version++;
     }
-    
+
     public Function<Character, Character> getInputTransform() {
         return inputTransform;
-    } 
-    
+    }
+
     public DocumentModel clone() {
         return new DocumentModelFilter(delegate.clone());
     }
@@ -126,7 +130,7 @@ public class DocumentModelFilter implements DocumentModel {
      *  setText().  Default implementation returns the text directly
      *  unless there is an input transform function set.  If there is
      *  an input transform function set then each character is first
-     *  passed through that function to build a new string.  
+     *  passed through that function to build a new string.
      */
     protected String filterInput( String text ) {
         if( inputTransform != null ) {
@@ -150,7 +154,7 @@ public class DocumentModelFilter implements DocumentModel {
     protected Character filterInput( char c ) {
         if( inputTransform != null ) {
             return inputTransform.apply(c);
-        }        
+        }
         return c;
     }
 
@@ -159,7 +163,7 @@ public class DocumentModelFilter implements DocumentModel {
      *  method, for example replacing all characters with '*' for
      *  a password field.  The default implementation checks for
      *  a transform function and uses it or just returns the string
-     *  directly. 
+     *  directly.
      */
     protected String filterOutput( String text ) {
         if( outputTransform != null ) {
@@ -186,8 +190,8 @@ public class DocumentModelFilter implements DocumentModel {
         // Cache the results for next time.  If the delegate's text
         // doesn't change then we avoid needlessly calling the transform.
         lastOutput = output;
-        lastTransformedOutput = filterOutput(output);  
-        return lastTransformedOutput;  
+        lastTransformedOutput = filterOutput(output);
+        return lastTransformedOutput;
     }
 
 
@@ -198,12 +202,12 @@ public class DocumentModelFilter implements DocumentModel {
     @Override
     public String getLine( int line ) {
         return filterOutput(delegate.getLine(line));
-    } 
+    }
 
     @Override
     public int getLineCount() {
         return delegate.getLineCount();
-    } 
+    }
 
     @Override
     public int getCarat() {
@@ -212,14 +216,17 @@ public class DocumentModelFilter implements DocumentModel {
 
 
     @Override
-    public void setmaxlines(int ml) {}
-
-    @Override
-    public void updateCarat(boolean absolute_or_relative, int value, boolean increment) {
+    public void setmaxlines(int ml) {
+        delegate.setmaxlines(ml);
     }
 
     @Override
-    public int getScrollMode() {
+    public void updateCarat(boolean absolute_or_relative, int value, boolean increment) {
+        delegate.updateCarat(absolute_or_relative, value, increment);
+    }
+
+    @Override
+    public TextField.ScrollMode getScrollMode() {
         return delegate.getScrollMode();
     }
 
@@ -275,7 +282,7 @@ public class DocumentModelFilter implements DocumentModel {
 
     @Override
     public String getselectedText() {
-        return delegate.getselectedText();
+        return filterOutput(delegate.getselectedText());
     }
 
     @Override
@@ -286,37 +293,37 @@ public class DocumentModelFilter implements DocumentModel {
     @Override
     public int getCaratLine() {
         return delegate.getCaratLine();
-    } 
+    }
 
     @Override
     public int getCaratColumn() {
         return delegate.getCaratColumn();
-    } 
+    }
 
     @Override
     public int home( boolean currentLine ) {
         return delegate.home(currentLine);
-    } 
+    }
 
     @Override
     public int end( boolean currentLine ) {
         return delegate.end(currentLine);
-    } 
-    
+    }
+
     @Override
     public int up() {
         return delegate.up();
-    } 
- 
+    }
+
     @Override
     public int down() {
         return delegate.down();
-    } 
+    }
 
     @Override
     public int left() {
         return delegate.left();
-    } 
+    }
 
     @Override
     public int right() {
@@ -336,12 +343,12 @@ public class DocumentModelFilter implements DocumentModel {
     @Override
     public void deleteCharAt( int pos ) {
         delegate.deleteCharAt(pos);
-    } 
+    }
 
     @Override
     public void backspace() {
         delegate.backspace();
-    } 
+    }
 
     @Override
     public void delete() {
@@ -350,16 +357,16 @@ public class DocumentModelFilter implements DocumentModel {
 
     @Override
     public void findPosition(int pos, int[] location) {
-      delegate.findPosition(pos,  location);
+        delegate.findPosition(pos,  location);
     }
 
     @Override
     public void insert( char c ) {
         Character x = filterInput(c);
-        if( x != null ) { 
+        if( x != null ) {
             delegate.insert(x);
         }
-    } 
+    }
 
     @Override
     public void insert( String text ) {
@@ -374,17 +381,17 @@ public class DocumentModelFilter implements DocumentModel {
         // of ourselves even if the underlying model hasn't changed.
         return delegate.getVersion() + version;
     }
-    
+
     @Override
     public DocumentModel getObject() {
         return this;
     }
-    
+
     @Override
     public VersionedReference<DocumentModel> createReference() {
         return new VersionedReference<DocumentModel>(this);
     }
-    
+
     @Override
     public VersionedReference<Integer> createCaratReference() {
         return delegate.createCaratReference();
@@ -392,18 +399,19 @@ public class DocumentModelFilter implements DocumentModel {
 
     @Override
     public String getfulltext() {
-        return delegate.getfulltext();
+        return filterOutput(delegate.getfulltext());
     }
 
     @Override
     public String getoffsetText(int[] offset, boolean returnoffset) {
-        return delegate.getoffsetText(offset,returnoffset);
+        //    return delegate.getoffsetText(offset,returnoffset);
+        return filterOutput(delegate.getoffsetText(offset,returnoffset));
+
     }
 
     @Override
     public Integer findCaratValue(int[] location) {
         return delegate.findCaratValue(location);
     }
-
 }
 

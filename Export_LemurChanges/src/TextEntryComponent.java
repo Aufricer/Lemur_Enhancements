@@ -32,9 +32,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package com.simsilica.lemur.component;
+
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+
 import com.jme3.font.*;
 import com.jme3.font.BitmapFont.Align;
 import com.jme3.font.BitmapFont.VAlign;
+import com.jme3.font.Rectangle;
 import com.jme3.input.KeyInput;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.RenderState.BlendMode;
@@ -44,6 +53,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Quad;
+
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.VAlignment;
@@ -51,19 +61,17 @@ import com.simsilica.lemur.core.GuiControl;
 import com.simsilica.lemur.core.GuiMaterial;
 import com.simsilica.lemur.core.GuiUpdateListener;
 import com.simsilica.lemur.core.VersionedReference;
-import com.simsilica.lemur.event.*;
-import com.simsilica.lemur.focus.FocusNavigationState;
+import com.simsilica.lemur.event.KeyAction;
+import com.simsilica.lemur.event.KeyActionListener;
+import com.simsilica.lemur.event.KeyListener;
+import com.simsilica.lemur.event.KeyModifiers;
+import com.simsilica.lemur.event.ModifiedKeyInputEvent;
 import com.simsilica.lemur.focus.FocusTarget;
+import com.simsilica.lemur.focus.FocusNavigationState;
 import com.simsilica.lemur.focus.FocusTraversal.TraversalDirection;
-import com.simsilica.lemur.text.DefaultDocumentModel;
 import com.simsilica.lemur.text.DocumentModel;
-
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.simsilica.lemur.text.DefaultDocumentModel;
+import com.simsilica.lemur.text.DocumentModelFilter;
 
 
 /**
@@ -75,7 +83,7 @@ import java.util.Map;
  *  @author    Paul Speed
  */
 public class TextEntryComponent extends AbstractGuiComponent
-                                implements FocusTarget, ColoredComponent {
+        implements FocusTarget, ColoredComponent {
 
     public static final KeyActionListener DOC_HOME = new DocumentHome();
     public static final KeyActionListener DOC_END = new DocumentEnd();
@@ -148,7 +156,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     private int scrollMode;
     private int maxLinecount;
     private ColorRGBA selectorColor = new ColorRGBA(0,0,255,0.25f);
-    private int textselect;
+    private int txtselmodeint;
     private int offset_x = 0;
     private Quad textselectQuad;
     private Geometry selectbar;
@@ -164,11 +172,11 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     private Map<KeyAction,KeyActionListener> actionMap = new HashMap<KeyAction,KeyActionListener>(standardActions);
 
-    public TextEntryComponent(BitmapFont font ) {
+    public TextEntryComponent( BitmapFont font ) {
         this( new DefaultDocumentModel(), font );
     }
 
-    public TextEntryComponent(DocumentModel model, BitmapFont font ) {
+    public TextEntryComponent( DocumentModel model, BitmapFont font ) {
         this.font = font;
         this.bitmapText = new BitmapText(font);
         bitmapText.setLineWrapMode(LineWrapMode.Clip);
@@ -176,7 +184,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         // bucket it will actually end up in Gui or regular.
         //bitmapText.setQueueBucket( Bucket.Transparent );
         this.model = model;
-        
+
         // Create a versioned reference for watching for updates, external or otherwise
         this.modelRef = model.createReference();
         this.caratRef = model.createCaratReference();
@@ -205,7 +213,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         TextEntryComponent result = (TextEntryComponent)super.clone();
         result.bitmapText = new BitmapText(font);
         bitmapText.setLineWrapMode(LineWrapMode.Clip);
-        
+
         result.model = model.clone();
         result.preferredSize = null;
         result.textBox = null;
@@ -289,7 +297,7 @@ public class TextEntryComponent extends AbstractGuiComponent
             actionMap.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
             actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
 
-         // scrollMode and maxLines are reset, thus reset offsets as well
+            // scrollMode and maxLines are reset, thus reset offsets as well
             model.setmaxlines(1);
             setScrollMode(3);
             offset_x =0;
@@ -298,12 +306,12 @@ public class TextEntryComponent extends AbstractGuiComponent
         } else {
             actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
             actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
-            
-            // We may choose to do something different with tab someday... but 
+
+            // We may choose to do something different with tab someday... but
             // the user can also just remove the action if they like.
             actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
             actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
-            
+
             actionMap.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
             actionMap.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
 
@@ -318,11 +326,11 @@ public class TextEntryComponent extends AbstractGuiComponent
     public void setFont( BitmapFont font ) {
         if( font == bitmapText.getFont() )
             return;
-    
+
         if( isAttached() ) {
             bitmapText.removeFromParent();
         }
-        
+
         // Can't change the font once created so we'll
         // have to create it fresh
         BitmapText newText = new BitmapText(font);
@@ -332,15 +340,15 @@ public class TextEntryComponent extends AbstractGuiComponent
         newText.setLocalTranslation(bitmapText.getLocalTranslation());
         newText.setSize(getFontSize());
         this.bitmapText = newText;
- 
+
         // The cursor is attached to the bitmap text directly
-        // so we need to move it.       
+        // so we need to move it.
         bitmapText.attachChild(cursor);
-                
+
         resizeCursor();
         resetCursorPosition();
         resetText();
-                
+
         if( isAttached() ) {
             getNode().attachChild(bitmapText);
         }
@@ -367,7 +375,7 @@ public class TextEntryComponent extends AbstractGuiComponent
             alpha = 1;
         }
         ColorRGBA color = bitmapText.getColor();
-        
+
         if( alpha == 1 ) {
             cursor.getMaterial().setColor("Color", color);
         } else {
@@ -397,7 +405,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         bitmapText.setAlpha(f);
         resetCursorColor();
     }
-    
+
     @Override
     public float getAlpha() {
         return bitmapText.getAlpha();
@@ -425,13 +433,14 @@ public class TextEntryComponent extends AbstractGuiComponent
         // And pad it out just a bit...
         //x += 1;
         float scale = bitmapText.getSize() / font.getPreferredSize();
+
         x *= scale;
         return x;
     }
 
     protected void resizeCursor() {
         cursorQuad.updateGeometry(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
-        cursorQuad.clearCollisionData(); 
+        cursorQuad.clearCollisionData();
     }
 
     protected void resetCursorState() {
@@ -454,8 +463,9 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
 
         String row = model.getLine(line);
+
         // before everything else we need to check if the line needs to be adjusted
-        if (scrollMode == 2 && getVisibleWidth(row) > textBox.width) {
+        if (scrollMode == 2 && ((getVisibleWidth(row) > textBox.width) && textBox != null)) {
             textadjust(model.getCaratLine(),true,true);
             return;
         }
@@ -473,7 +483,6 @@ public class TextEntryComponent extends AbstractGuiComponent
                 // in the example the preferred size was not set, an offset could stretch the single lined textfields
                 // once the cursor went back
                 // therefore we will set a preferred size/width the first time we have an offset
-                // This maybe error faulty but can be still reset from outside the jar (see Textentrydemo: textfield.setpreferedwidth)
                 //     if (getPreferredSize() == null) { setPreferredSize(new Vector3f(textBox.width,bitmapText.getLineHeight()*maxLinecount,0));); }
 
                 if (preferredWidth == 0) {
@@ -514,6 +523,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public void setText( String text ) {
+        // geändert von getText
         if( text != null && text.equals(model.getfulltext()) )
             return;
 
@@ -644,7 +654,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.home(false);
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
 
         }
     }
@@ -654,7 +664,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.home(true);
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
         }
     }
 
@@ -663,7 +673,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.end(false);
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
         }
     }
 
@@ -672,7 +682,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.end(true);
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
 
         }
     }
@@ -682,7 +692,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.up();
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
 
         }
     }
@@ -692,7 +702,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.down();
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
 
         }
     }
@@ -702,7 +712,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.left();
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
         }
     }
 
@@ -711,7 +721,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             source.model.right();
             //source.resetCursorPosition(); should be automatic now
-            if (source.textselect ==1) source.model.emptyAnchors();
+            if (source.txtselmodeint ==1) source.model.emptyAnchors();
         }
     }
 
@@ -755,14 +765,14 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         }
     }
-    
+
     private static class FocusChange implements KeyActionListener {
         private TraversalDirection dir;
-        
+
         public FocusChange( TraversalDirection dir ) {
             this.dir = dir;
         }
-    
+
         @Override
         public void keyAction( TextEntryComponent source, KeyAction key ) {
             FocusNavigationState nav = GuiGlobals.getInstance().getFocusNavigationState();
@@ -770,8 +780,8 @@ public class TextEntryComponent extends AbstractGuiComponent
                 return;
             }
             Spatial current = GuiGlobals.getInstance().getCurrentFocus();
-            nav.requestChangeFocus(current, dir);    
-        } 
+            nav.requestChangeFocus(current, dir);
+        }
     }
 
 
@@ -781,7 +791,7 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         @Override
         public void onKeyEvent( KeyInputEvent evt ) {
-            ModifiedKeyInputEvent mEvt = (ModifiedKeyInputEvent)evt;                    
+            ModifiedKeyInputEvent mEvt = (ModifiedKeyInputEvent)evt;
             if( mEvt.isPressed() ) {
                 KeyAction key = mEvt.toKeyAction(); //new KeyAction(code, (control?KeyAction.CONTROL_DOWN:0), (shift?KeyAction.SHIFT_DOWN:0) );
                 KeyActionListener handler = actionMap.get(key);
@@ -795,41 +805,40 @@ public class TextEntryComponent extends AbstractGuiComponent
                 // characters never make it directly to the
                 // document
                 if( evt.getKeyChar() >= 32 ) {
-                    if (textselect ==1) {
+                    if (txtselmodeint ==1) {
                         model.deleteSelectedText(false);
                         model.emptyAnchors();
                     }
                     model.insert(evt.getKeyChar());
                     evt.setConsumed();
-                    //resetText(); ...should be automatic now
                 }
             }
         }
     }
- 
+
     /**
      *  Checks for changes in the model and updates the text display
      *  or cursor position as necessary.
      */
 
     private class ModelChecker implements GuiUpdateListener {
-    
-        @Override       
+
+        @Override
         public void guiUpdate( GuiControl source, float tpf ) {
-            if (modelRef.update()) {
+            if (modelRef.update()) { // TextModell (also Buchstaben) haben sich geändert
                 resetText();
                 if (isTextselect()){
                     makeTextselectQuads();
                     ancRef.update();
                 }
             }
-            if (caratRef.update()) {
+            if (caratRef.update()) {  // cursorPosition hat sich geändert
                 resetCursorPosition();
             }
 
-            if (ancRef.update()){
-               if (isTextselect()) makeTextselectQuads();
-             }
+            if (ancRef.update()){ // Anchors haben sich geändert
+                if (isTextselect()) makeTextselectQuads();
+            }
         }
     }
 
@@ -919,7 +928,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     private static class CopySelect implements KeyActionListener {
         @Override
         public void keyAction( TextEntryComponent source, KeyAction key ) {
-             source.Pasteto(source.model.getselectedText());
+            source.Pasteto(source.model.getselectedText());
         }
     }
 
@@ -975,7 +984,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public void setScrollMode(int scrollMode) {
-        // (0 = None, 1 = Full (X + Y), 2 = Y yes, X will be  auto adjustet, 3 = Y no, X yes (single line) )
+        // (0 = None, 1 = Full (X + Y), 2 = Y yes, X will be  auto adjustet, 3 = Y no, X yes (as single line, but with more lines) )
         this.scrollMode = scrollMode;
         if (scrollMode ==0 || scrollMode ==3) setMaxLinecount(getMaxLinecount());
         model.setScrollMode(scrollMode);
@@ -1001,14 +1010,39 @@ public class TextEntryComponent extends AbstractGuiComponent
         int k;
 
 
+        /*
+        AdjustText worked fine for DefaultDocumentModels for DocumentModelFilter we needed to do a few adjustements
+
+        - textmodel will always contain the unfiltered text
+        - sometimes we still use model and not textmodel as often the delegate.function is called in DocumentModelFilter
+        We still have the problem, that the (visible) length of filtered output can be different from unfiltered
+        therefore we check the filtered output here but take our new text from unfiltered
+        not sure if this is bug free but it seems it is working
+        We also estimate that the text of DefaultDocumentModel and DocumentModelfilter always equals in lenght
+        A todo would be to check and refactor this function
+         */
+        DocumentModel textmodel = model;
+        String unfilteredrow;
+
+        if (model instanceof DocumentModelFilter)  {
+            textmodel = ((DocumentModelFilter) model).getDelegate();
+            if (!(model.getfulltext().length() == textmodel.getfulltext().length())) return; //Upps, should not happen
+
+        }
+
         // text until startposition will be unchanged
         for (j =0; j <= startline-1; j++) {
-            lng += model.getLine(j).length();
+            lng += textmodel.getLine(j).length();
+            //   lng += model.getLine(j).length();
         }
         lng = lng +startline;
-        // text is taken from the full text without any offset that might be in place
-        newText = new StringBuilder(model.getoffsetText(new int[] {0,0},false)).substring(0,lng).toString();
+
+        newText = new StringBuilder(textmodel.getoffsetText(new int[] {0,0},false)).substring(0,lng);
+        //  newText = new StringBuilder(model.getoffsetText(new int[] {0,0},false)).substring(0,lng).toString();
+
         crow = model.getLine(j);
+        unfilteredrow = textmodel.getLine(j);
+
         j++;
         tlng =lng;
 
@@ -1029,13 +1063,12 @@ public class TextEntryComponent extends AbstractGuiComponent
 
                 i = crow.length()- i+1;
 
-
                 // if we adjust words, 10% of visible space line is given to wrap words instead of characters
                 // a word starts where an " " is found before the word
                 if (wordadjust) {
                     maxVar = (int) (Math.floor(lng - i) * 0.1);
                     for (k = 0; k<maxVar+1;k++) {
-                      //  String kk = crow.substring(crow.length()-i-k-1,crow.length()-i-k);
+                        //  String kk = crow.substring(crow.length()-i-k-1,crow.length()-i-k);
                         if ((crow.substring(crow.length()-i-k-1,crow.length()-i-k).codePointAt(0) ==32)) {
                             break;
                         }
@@ -1046,7 +1079,9 @@ public class TextEntryComponent extends AbstractGuiComponent
                     i +=k;
                 }
 
-                newText = new StringBuilder(newText).append(crow.substring(0, crow.length() - i) + "\n").toString();
+                newText = new StringBuilder(newText).append(unfilteredrow.substring(0, unfilteredrow.length() - i) + "\n").toString();
+                //     newText = new StringBuilder(newText).append(crow.substring(0, crow.length() - i) + "\n").toString();
+
                 tlng +=crow.length() - i;
                 // potential additional line breaks change the position of the carat
                 // as startline maybe different from cursor line only valid line breaks are counted
@@ -1055,10 +1090,12 @@ public class TextEntryComponent extends AbstractGuiComponent
                 }
 
                 if (j < model.getLineCount() && getVisibleWidth(new StringBuilder(crow.substring(lng - i)).toString()) < textBox.width) {
-                    crow = new StringBuilder(crow.substring(lng - i)).append(model.getLine(j)).toString();
+                    crow = new StringBuilder(crow.substring(lng - i)).append(model.getLine(j)).toString(); //filtered content
+                    unfilteredrow = new StringBuilder(unfilteredrow.substring(lng - i)).append(textmodel.getLine(j)).toString();
                     j++;
                 } else {
                     crow = new StringBuilder(crow.substring(lng - i)).toString();
+                    unfilteredrow = new StringBuilder(unfilteredrow.substring(lng - i)).toString();
                 }
 
                 if (getVisibleWidth(crow) < textBox.width) {
@@ -1067,46 +1104,84 @@ public class TextEntryComponent extends AbstractGuiComponent
             } while (tester);
         } while ((j<startline) || (!oneline && j<model.getLineCount()));
 
-        newText = new StringBuilder(newText).append(crow).toString();
+        // adding to the last line
+        newText = new StringBuilder(newText).append(unfilteredrow).toString();
+        //newText = new StringBuilder(newText).append(crow).toString();
 
 
-       // remaining lines wont be adjusted and added
+        // remaining lines wont be adjusted and added
 
         for (i = j; i < model.getLineCount();i++) {
-            newText = new StringBuilder(newText).append("\n"+model.getLine(i)).toString();
+            newText = new StringBuilder(newText).append("\n"+textmodel.getLine(i)).toString();
+            //   newText = new StringBuilder(newText).append("\n"+model.getLine(i)).toString();
         }
 
         // the setText function unfort. set our cursor at the end of the text
         // this may also result in an unwanted Y-offset
         // to avoid this we have to reset the cursor
         i = model.getCarat();
-        model.setText(newText);
-
+        textmodel.setText(newText);
         model.updateCarat(true,i+z,false);
 
         // adjustements in case we have a scrollMode with limited line numbers
         if (!(scrollMode ==1 || scrollMode == 3 || singleLine) ) offset_x =0;
         if ((scrollMode == 0 || singleLine || scrollMode ==3) &&  getMaxLinecount() < model.getLineCount()){
+
             lng=0;
             z=0;
             for (j =0; j < getMaxLinecount(); j++) {
-                lng += model.getLine(j).length();
+                lng += textmodel.getLine(j).length();
             }
 
             lng = lng +j-1;
-            newText = new StringBuilder(model.getoffsetText(new int[] {0,0},false)).substring(0,lng).toString();
-            for (i = j; i < model.getLineCount();i++) {
-                newText = new StringBuilder(newText).append(model.getLine(i)).toString();
-            }
-            model.setText(newText);
-            model.updateCarat(true,0,true);
-        }
+            newText = new StringBuilder(textmodel.getoffsetText(new int[] {0,0},false)).substring(0,lng);
+            //  newText = new StringBuilder(model.getoffsetText(new int[] {0,0},false)).substring(0,lng).toString();
 
+            String hinzu = "";
+            for (i = j; i < model.getLineCount();i++) {
+                hinzu = new StringBuilder(hinzu).append(textmodel.getLine(i)).toString();
+            }
+
+            if (scrollMode == 2) {
+                /*
+                  in this rare case we have a combination that comes with limited lines and limitation of available space in x-direction too
+                  This could lead to recursive, repeating calls
+                  Therefore we are checking and shortening (if necessary) the content of the textfield
+                */
+                String hilfe = textmodel.getLine(j-1); // last non appended line
+                hilfe += hinzu;
+                i = 0;
+                lng = hilfe.length();
+                while ((getVisibleWidth(hilfe.substring(0, i)) < textBox.width) && i < lng){
+                    i++;
+                }
+                i--;
+                if (i<=textmodel.getLine(j-1).length()) {
+                    // last line must be shorten
+                    hinzu ="";
+                    newText = newText.substring(0,i);
+                }
+                if (i>textmodel.getLine(j-1).length()) {
+                    // the adding part must be reduced
+                    hinzu = hinzu.substring(0,i-textmodel.getLine(j-1).length());
+                }
+            }
+
+            newText = new StringBuilder(newText).append(hinzu).toString();
+            //  for (i = j; i < model.getLineCount();i++) {
+            //      newText = new StringBuilder(newText).append(textmodel.getLine(i)).toString();
+            //  }
+            textmodel.setText(newText);
+            model.updateCarat(true,0,true);
+
+        }
     }
 
     private void makeTextselectQuads() {
-        // decided to make the Quads with a extra Node that can be just detached and not with userdata
-        // but still each added textselect bar has its unique userdata
+        /*
+        decided to make the Quads with an extra Node that can be just detached and not with userdata (as in listboxes)
+        but still each added textselect bar has its unique userdata
+         */
         Node selectorNode = new Node();
         List<int[]> anc;
         int i;
@@ -1131,8 +1206,10 @@ public class TextEntryComponent extends AbstractGuiComponent
         selectorNode.setName("selectorNode");
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
-        // if this method is called before the textbox is set this routine crashs
-        if (textBox == null) return;
+        if (textBox == null) {
+            getDocumentModel().setText(getDocumentModel().getText());
+            return;
+        }
 
         // each anchor is an independent textselect area
         // we find the position in text
@@ -1140,56 +1217,56 @@ public class TextEntryComponent extends AbstractGuiComponent
             values =  anc.get(i);
             model.findPosition(values[0],pos1);
             model.findPosition(values[1],pos2);
-    //       System.out.println("Position 1:" +  values[0] +" = line "+ pos1[0] + " column " + pos1[1]);
-    //       System.out.println("Position 2:" +  values[1] +" = line "+ pos2[0] + " column " + pos2[1]);
-           if (pos2[0] >= model.getLineCount()){
-               anc.remove(i);
-               continue;
-           }
-           // and check if the textselect area is stretched over more then one line
-           // lines that are out of sight, due to offset will be ignored
-           for (j = pos1[0]; j <= pos2[0];j++) {
-               if ((j<model.getOffset_Y()) || (j-model.getOffset_Y()>=maxLinecount)) {
-                   continue;
-               }
-               y = (-j+model.getOffset_Y()) * bitmapText.getLineHeight();
-               y -= bitmapText.getLineHeight();
+            //       System.out.println("Position 1:" +  values[0] +" = line "+ pos1[0] + " column " + pos1[1]);
+            //       System.out.println("Position 2:" +  values[1] +" = line "+ pos2[0] + " column " + pos2[1]);
+            if (pos2[0] >= model.getLineCount()){
+                anc.remove(i);
+                continue;
+            }
+            // and check if the textselect area is stretched over more then one line
+            // lines that are out of sight, due to offset will be ignored
+            for (j = pos1[0]; j <= pos2[0];j++) {
+                if ((j<model.getOffset_Y()) || (j-model.getOffset_Y()>=maxLinecount)) {
+                    continue;
+                }
+                y = (-j+model.getOffset_Y()) * bitmapText.getLineHeight();
+                y -= bitmapText.getLineHeight();
 
 
-               if (offset_x>  model.getLine(j).length()) continue;
+                if (offset_x>  model.getLine(j).length()) continue;
 
-               if (j == pos1[0]) {
-               xstart = getVisibleWidth(model.getLine(j).substring(offset_x,Math.max(offset_x,pos1[1])).toString());
-               } else {
-               xstart =0;
-               }
+                if (j == pos1[0]) {
+                    xstart = getVisibleWidth(model.getLine(j).substring(offset_x,Math.max(offset_x,pos1[1])).toString());
+                } else {
+                    xstart =0;
+                }
 
-               if (pos1[0] == pos2[0]) { // 1 line only
-                   if (offset_x>pos2[1]) continue;
-                   xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,pos2[1]));
-               } else {
-                   if (j == pos2[0]) { // end line
-                       if (offset_x>pos2[1]) continue;
-                       xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,pos2[1]));
-                   } else { // any line in between
-                       xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,model.getLine(j).length()));
-                   }
-               }
+                if (pos1[0] == pos2[0]) { // 1 line only
+                    if (offset_x>pos2[1]) continue;
+                    xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,pos2[1]));
+                } else {
+                    if (j == pos2[0]) { // end line
+                        if (offset_x>pos2[1]) continue;
+                        xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,pos2[1]));
+                    } else { // any line in between
+                        xende = getVisibleWidth( model.getLine(j).toString().substring(offset_x,model.getLine(j).length()));
+                    }
+                }
 
-               xende= Math.min(xende,textBox.width);
-               if (xstart == xende) continue;
+                xende= Math.min(xende,textBox.width);
+                if (xstart == xende) continue;
 
 
-               textselectQuad = new Quad(xende-xstart, bitmapText.getLineHeight());
-               selectbar = new Geometry( "selectbar" +z, textselectQuad);
-               z++;
-               selectbar.setMaterial(mat.getMaterial());
-               selectbar.getMaterial().getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-               selectbar.setUserData("SelectorNumber", z);
-               selectorNode.attachChild(selectbar);
+                textselectQuad = new Quad(xende-xstart, bitmapText.getLineHeight());
+                selectbar = new Geometry( "selectbar" +z, textselectQuad);
+                z++;
+                selectbar.setMaterial(mat.getMaterial());
+                selectbar.getMaterial().getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+                selectbar.setUserData("SelectorNumber", z);
+                selectorNode.attachChild(selectbar);
 
-               selectbar.setLocalTranslation(xstart,y,0.01f);
-           }
+                selectbar.setLocalTranslation(xstart,y,0.01f);
+            }
         }
         bitmapText.attachChild(selectorNode);
     }
@@ -1209,27 +1286,27 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public boolean isTextselect() {
-        if ((textselect == 1) || (textselect == 2)) {
+        if ((txtselmodeint == 1) || (txtselmodeint == 2)) {
             return true;
         } else {
             return false;
         }
     }
 
-    public void setTextselect(int textselectmode) {
+    public void setTxtselmodeint(int textselectmode) {
         // 0 = None
-        // 1 = unstatic
-        // 2 = static
-        this.textselect = textselectmode;
+        // 1 = Auto
+        // 2 = Manuell
+        this.txtselmodeint = textselectmode;
         setScrollMode(scrollMode); // to reset offset X
-       if (isTextselect()) {
+        if (isTextselect()) {
             model.emptyAnchors();
         } else {
             removTextselectQuads();
         }
         // in case we have the "standard" Textselect mode activated we add some keybindings
         // user still can create anchors by using Textselect mode 2 and implementing the behaviour he wants
-        if (textselect ==1) {
+        if (txtselmodeint ==1) {
             actionMap.put(new KeyAction(KeyInput.KEY_LEFT , KeyModifiers.SHIFT_DOWN), Shiftleft);
             actionMap.put(new KeyAction(KeyInput.KEY_RIGHT , KeyModifiers.SHIFT_DOWN), ShiftRight);
             actionMap.put(new KeyAction(KeyInput.KEY_UP , KeyModifiers.SHIFT_DOWN), ShiftUp);
@@ -1266,9 +1343,9 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     }
 
-    public int getTextselect() {
-        // textSelect Mode
-        return this.textselect;
+    public int getTextselectModeint() {
+        // get the internal int of textselect mode
+        return this.txtselmodeint;
     }
 
     private void Pasteto (String copyme) {
@@ -1284,12 +1361,12 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         Transferable t = c.getContents( null );
         if ( t.isDataFlavorSupported(DataFlavor.stringFlavor) )
-         {
+        {
             cb = (String) t.getTransferData(DataFlavor.stringFlavor);
-            } else {
+        } else {
             cb  = "";
-            }
-     return cb;
+        }
+        return cb;
     }
 
     public int [] getTextlineYX(int [] coordinatesXY) {
@@ -1344,8 +1421,3 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
 }
-
-
-
-
-

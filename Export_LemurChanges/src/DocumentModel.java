@@ -1,39 +1,42 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2016, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package com.simsilica.lemur.text;
+
+import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.lemur.core.VersionedReference;
 
@@ -48,14 +51,14 @@ import java.util.List;
 public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     /**
-     *  Deep clones this document model. 
+     *  Deep clones this document model.
      */
     public DocumentModel clone();
 
     /**
      *  Replaces the text contained in this DocumentModel.
      */
-    public void setText(String text);
+    public void setText( String text );
 
     /**
      *  Returns the current text value contained in this DocumentModel adjusted with its current offset X+Y
@@ -67,7 +70,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     /**
      *  Returns the string representing just the specified line of text.
      */
-    public String getLine(int line);
+    public String getLine( int line );
 
     /**
      *  Returns the current number of lines in this document.
@@ -101,7 +104,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
      *  the home position is just before the first character in the whole
      *  document.
      */
-    public int home(boolean currentLine);
+    public int home( boolean currentLine );
 
     /**
      *  Moves the carat to the document's end position or the current line's
@@ -111,7 +114,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
      *  the end position is just after the last character in the whole
      *  document.
      */
-    public int end(boolean currentLine);
+    public int end( boolean currentLine );
 
     /**
      *  Moves the carat position to the previous line if there is one.  After
@@ -154,7 +157,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     /**
      *  Deletes the character at the specified position.
      */
-    public void deleteCharAt(int pos);
+    public void deleteCharAt( int pos );
 
     /**
      *  Deletes the character immediately before the current carat position.
@@ -175,12 +178,12 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     /**
      *  Inserts a character at the current carat position.
      */
-    public void insert(char c);
+    public void insert( char c );
 
     /**
      *  Bulk inserts a string of text.
      */
-    public void insert(String text);
+    public void insert( String text );
 
     /**
      *  Returns a VersionedReference that can be watched for changes to
@@ -188,9 +191,9 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
      */
     public VersionedReference<Integer> createCaratReference();
 
-    // returns the full text of the document to avoid
-    // using the getoffsetText and make a field  each time
+    // returns the full text of the document and avoid using the getoffsetText() directly
     String getfulltext();
+
 
     //  Returns the current text value contained in this DocumentModel adjusted with
     //  the specified offset, limited by the max visible lines
@@ -206,7 +209,6 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     public void setmaxlines(int ml);
 
     // update the Carat and setting line + column of the directly as well as taking offset into consideration
-
     // updating the current carat position by setting an absolute or relative value
     // the function will set line and column of the document model automatically
     // and is adjusting the offset if needed
@@ -215,7 +217,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     // get the current scrollMode of the document
 
-    public  int getScrollMode();
+    public TextField.ScrollMode getScrollMode();
 
     // set the current scrollMode of the document
 
@@ -252,7 +254,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     // reversing textselect in the given position
     // non selected areas will be selected, selected areas deselected
 
-     void reverseSelect(int startpos, int endpos);
+    void reverseSelect(int startpos, int endpos);
 
     // returns the current list with anchors of textselect areas
     List<int[]> getAnchors();
@@ -270,7 +272,6 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     // reverse of findPosition
 
     Integer findCaratValue(int[] location);
-
 
     // returns a versioned Reference of the Anchor
     // can be used to check for updates of textselect areas

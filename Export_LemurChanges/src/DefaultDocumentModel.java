@@ -1,45 +1,48 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2016, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.simsilica.lemur.core.VersionedObject;
-import com.simsilica.lemur.core.VersionedReference;
+package com.simsilica.lemur.text;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+
+import com.simsilica.lemur.TextField;
+import com.simsilica.lemur.core.VersionedObject;
+import com.simsilica.lemur.core.VersionedReference;
 
 
 /**
@@ -49,7 +52,7 @@ import java.util.StringTokenizer;
  */
 public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
-    private long version;
+    private long version; // of document model
     private List<StringBuilder> lines = new ArrayList<StringBuilder>();
     private String composite = null;
     private Carat carat = new Carat();
@@ -69,7 +72,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         parseText("");
     }
 
-    public DefaultDocumentModel(String text ) {
+    public DefaultDocumentModel( String text ) {
         parseText(text!=null?text:"");
     }
 
@@ -77,21 +80,21 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     public DefaultDocumentModel clone() {
         try {
             DefaultDocumentModel result = (DefaultDocumentModel)super.clone();
-            
+
             // Deep clone the lists
             result.lines = new ArrayList<StringBuilder>(lines.size());
             for( int i = 0; i < result.lines.size(); i++ ) {
                 StringBuilder sb = lines.get(i);
                 result.lines.set(i, new StringBuilder(sb));
             }
-            
+
             result.carat = carat.clone();
-            
+
             // And reset the version because it's ok for this document to start
             // over
             result.version = 0;
- 
-            return result;           
+
+            return result;
         } catch( CloneNotSupportedException e ) {
             throw new RuntimeException("Clone not supported", e);
         }
@@ -106,14 +109,15 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     @Override
     public String getText() {
         if( composite == null )
-        //  changed this for the scrollmode
-        createComposite(new int[] {offset_Y,offset_X});
+            //  changed this for the scrollmode
+            createComposite(new int[] {offset_Y,offset_X});
         return composite;
     }
 
 
     @Override
     public String getLine( int line ) {
+        if (line > lines.size()-1)  return lines.get(lines.size()-1).toString();
         return lines.get(line).toString();
     }
 
@@ -190,8 +194,8 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
     @Override
     public int up() {
-       if( line == 0 )
-           return carat.get();
+        if( line == 0 )
+            return carat.get();
 
         if (getCaratLine()  - offset_Y <= 0 && !((scrollMode ==0)|| scrollMode ==3)) {
             // change the offset and inc versions for update loop
@@ -305,7 +309,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     public void insertNewLine() {
 
         if( line == lines.size() - 1 && column == lines.get(line).length() ) {
-            lines.add(new StringBuilder()); // Am Ende der Zeile
+            lines.add(new StringBuilder());
         } else {
             // Otherwise... we need to split the current line
             StringBuilder row = lines.get(line);
@@ -315,13 +319,20 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
         // line numbers maybe restricted by max lines and scrollmode
         if (maxlines < lines.size() && ((scrollMode == 0) || scrollMode == 3)) {
+            // 2 options
+            // 1: when all lines are used lines cant be split and text cant be moved to next line
+            //  lines.get(line).append(lines.remove(line+1));
+
+            // 2: lines can still be split but everything will accumulate at maxline
             lines.get(maxlines-1).append(lines.remove(maxlines));
         } else {
             line++;
             column = 0;
             carat.increment();  // A new line is still a "character"
         }
+        // Neu
 
+        // If the carat position is > maxlines we need to adjust the offset
         if ((getCaratLine()+1 - offset_Y) > maxlines && !((scrollMode ==0)|| scrollMode ==3)) {
             offset_Y++;
         }
@@ -373,7 +384,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             // reduce the offset
             if (del && (getCaratLine() + offset_Y) > maxlines && !((scrollMode ==0)|| scrollMode ==3)) {
                 offset_Y--;
-                }
+            }
             findPosition(carat.get(), location);
             line = location[0];
             column = location[1];
@@ -456,7 +467,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             // Else we need to advance
             index += l.length() + 1;
         }
-        location[0] = lines.size();
+        location[0] = lines.size()-1;
         location[1] = 0;
     }
 
@@ -599,7 +610,6 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         return composite;
     }
 
-
     @Override
     public void updateCarat(boolean absolute_or_relative, int value, boolean increment){
         // the carat.move function does not reset line or column or care about offsets
@@ -629,8 +639,15 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     }
 
     @Override
-    public int getScrollMode() {
-        return scrollMode;
+    public TextField.ScrollMode getScrollMode() {
+        switch (scrollMode) {
+            case 0: return TextField.ScrollMode.None;
+            case 1: return TextField.ScrollMode.Full;
+            case 2: return TextField.ScrollMode.AutoadjustX;
+            case 3: return TextField.ScrollMode.AutoadjustY;
+            default: return null;
+        }
+
     }
 
     @Override
@@ -645,7 +662,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
     @Override
     public boolean hasOffset_Y() {
-         return (getOffset_Y() >0);
+        return (getOffset_Y() >0);
     }
 
     @Override
@@ -675,7 +692,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
     @Override
     public void reverseSelect(int startpos, int endpos) {
 
-        // sorting the value pair and return if user data is invalid
+        // sorting the value pair and return if user data is brainless
         if (startpos == endpos) {
             return;
         } else {
@@ -696,6 +713,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             for (i = 0; i < z; i++) {
                 anchors.delSelect(pos_Areas.get(i));
             }
+            // or get neg_Areas, delete selected Area, add neg_Areas
         }
     }
 
@@ -747,7 +765,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
                 }
 
             }
-            setText(helper);
+            setText(helper); // composite is cleared in that method
             updateCarat(true,merker,true);
 
         }
@@ -774,12 +792,13 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         String helper ="";
 
         l = getAnchors();
+        if (l==null) return null;
         createComposite();
         for (i = 0; i< l.size(); i++) {
             values = l.get(i);
             helper += composite.substring(values[0], values[1]);
         }
-
+        composite = null;
         return helper;
     }
 
@@ -800,16 +819,15 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
         return lng;
     }
-
     // end of new stuff
 
     private class Carat implements VersionedObject<Integer> {
         private int value;
         private long version;
-        
+
         public Carat() {
         }
- 
+
         public Carat clone() {
             Carat result = new Carat();
             result.value = value;
@@ -817,11 +835,11 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             // can start over.
             return result;
         }
- 
+
         public final int get() {
             return value;
         }
- 
+
         public final int set( int value ) {
             if( this.value == value ) {
                 return value;
@@ -830,41 +848,41 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             version++;
             return value;
         }
-        
+
         public final int move( int amount ) {
             value += amount;
             version++;
             return value;
         }
-        
+
         public final int increment() {
             value++;
             version++;
             return value;
         }
-        
+
         public final int decrement() {
             value--;
             version++;
             return value;
         }
 
-        @Override       
+        @Override
         public final long getVersion() {
             return version;
-        } 
+        }
 
-        @Override       
+        @Override
         public final Integer getObject() {
             return value;
         }
 
-        @Override       
+        @Override
         public final VersionedReference<Integer> createReference() {
             return new VersionedReference<Integer>(this);
         }
- 
-        @Override       
+
+        @Override
         public final String toString() {
             return "Carat[" + value + "]";
         }
@@ -955,7 +973,8 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
                 j++;
             }
             markerright = j;
-
+            // System.out.println("Pos 1 " + (markerleft) + " of " + ancfield.size() + " + outside " + p1out);
+            // System.out.println("Pos 2 " + (markerright) + " of " + ancfield.size() + " + outside " + p2out);
         }
 
         public void addSelect(int[] valuepair) {
@@ -982,7 +1001,6 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
                 valuepair[1] = getoffsetText(tmpfield,false).length();
                 System.out.println("Selectors size adjusted to textlenght");
             }
-
 
             // if we dont have an anchor yet we just add the value pair
             if (ancfield.size() == 0) {
@@ -1133,9 +1151,9 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
                 tmpfield = ancfield.get(markerleft - 1);
                 // all anchor
                 if (tmpfield[0] == valuepair[0] && tmpfield[1] == valuepair[1]) {
-                        ancfield.remove(markerleft-1);
-                        sversion++;
-                        return;
+                    ancfield.remove(markerleft-1);
+                    sversion++;
+                    return;
                 }
                 // remove left part of anchor
                 if (valuepair[0] == tmpfield[0]) {
@@ -1161,7 +1179,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
             // both positions inside a textSelect area, that is not the same
             if (!(markerleft == markerright) && (!p1out && !p2out)) {
-               del = 0;
+                del = 0;
                 // delete anchors in between
                 for (i = 0; i < markerright - markerleft-1; i++) {
                     ancfield.remove(markerleft);
@@ -1331,4 +1349,4 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
     }
 
- }
+}

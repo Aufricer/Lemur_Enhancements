@@ -32,17 +32,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.jme3.font.BitmapFont;
-import com.jme3.math.ColorRGBA;
-import com.simsilica.lemur.component.QuadBackgroundComponent;
-import com.simsilica.lemur.core.GuiControl;
-import com.simsilica.lemur.event.FocusMouseListener;
-import com.simsilica.lemur.event.KeyAction;
-import com.simsilica.lemur.event.KeyActionListener;
-import com.simsilica.lemur.event.MouseEventControl;
-import com.simsilica.lemur.style.*;
+package com.simsilica.lemur;
 
 import java.util.Map;
+
+import com.jme3.font.BitmapFont;
+import com.jme3.math.ColorRGBA;
+
+import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.component.TextEntryComponent;
+import com.simsilica.lemur.core.GuiControl;
+import com.simsilica.lemur.event.KeyActionListener;
+import com.simsilica.lemur.event.KeyAction;
+import com.simsilica.lemur.event.FocusMouseListener;
+import com.simsilica.lemur.event.MouseEventControl;
+import com.simsilica.lemur.style.StyleDefaults;
+import com.simsilica.lemur.style.Attributes;
+import com.simsilica.lemur.style.ElementId;
+import com.simsilica.lemur.style.StyleAttribute;
+import com.simsilica.lemur.style.Styles;
+import com.simsilica.lemur.text.DefaultDocumentModel;
+import com.simsilica.lemur.text.DocumentModel;
 
 
 /**
@@ -56,40 +66,44 @@ public class TextField extends Panel {
 
     public static final String LAYER_TEXT = "text";
 
+    public enum ScrollMode { None, Full, AutoadjustX, AutoadjustY }
+
+    public enum TextselectMode { Off, Auto, Manuell}
+
     private TextEntryComponent text;
 
-    public TextField(String text ) {
+    public TextField( String text ) {
         this(new DefaultDocumentModel(text), true, new ElementId(ELEMENT_ID), null);
     }
 
-    public TextField(DocumentModel model ) {
+    public TextField( DocumentModel model ) {
         this(model, true, new ElementId(ELEMENT_ID), null);
     }
 
-    public TextField(String text, String style ) {
+    public TextField( String text, String style ) {
         this(new DefaultDocumentModel(text), true, new ElementId(ELEMENT_ID), style);
     }
 
-    public TextField(String text, ElementId elementId ) {
+    public TextField( String text, ElementId elementId ) {
         this(new DefaultDocumentModel(text), true, elementId, null);
     }
-    
-    public TextField(String text, ElementId elementId, String style ) {
+
+    public TextField( String text, ElementId elementId, String style ) {
         this(new DefaultDocumentModel(text), true, elementId, style);
     }
 
-    public TextField(DocumentModel model, String style ) {
+    public TextField( DocumentModel model, String style ) {
         this(model, true, new ElementId(ELEMENT_ID), style);
     }
 
-    protected TextField(DocumentModel model, boolean applyStyles, ElementId elementId, String style ) {
+    protected TextField( DocumentModel model, boolean applyStyles, ElementId elementId, String style ) {
         super(false, elementId, style);
- 
+
         // Set our layer ordering
-        getControl(GuiControl.class).setLayerOrder(LAYER_INSETS, 
-                                                   LAYER_BORDER, 
-                                                   LAYER_BACKGROUND,
-                                                   LAYER_TEXT);
+        getControl(GuiControl.class).setLayerOrder(LAYER_INSETS,
+                LAYER_BORDER,
+                LAYER_BACKGROUND,
+                LAYER_TEXT);
 
         setDocumentModel(model);
 
@@ -117,11 +131,19 @@ public class TextField extends Panel {
 
     @StyleDefaults(ELEMENT_ID)
     public static void initializeDefaultStyles( Attributes attrs ) {
+        /*
+        added 3 standard attributes to the textfield (Scrollmode, maxLinecount and Textselectmode)
+        in case they are not set during styling we set the defaults at this place
+        ScrollMode = no adjustements
+        Maxlinecount =  by default the textfield has at least 1 line
+        Textselect = we use the inbuilt select options
+         */
         attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0,0,0,1)), false);
-        attrs.set("singleLine", true);
-        attrs.set("Scrollmode", 0); // by default the textfield wont be scrollable (0 = None, 1 = Full, 2 = Y yes, X will be merged, 3 = single line Y no, X yes)
-        attrs.set("maxLinecount", 1); // by default the textfield has at least 1 line
-        attrs.set("Textselectmode", true); // by default the textselect mode unstatic will be enabled
+        attrs.set("singleLine", true,false);
+        attrs.set("preferredLineCount", 1,false);
+        attrs.set("Scrollmode", ScrollMode.None,false);
+        attrs.set("maxLinecount", 1,false);
+        attrs.set("Textselectmode", TextselectMode.Auto,false);
     }
 
     public Map<KeyAction,KeyActionListener> getActionMap() {
@@ -138,7 +160,9 @@ public class TextField extends Panel {
     }
 
     public String getText() {
-          return text == null ? null : text.getText();
+        return text == null ? null : text.getText();
+        // changed to always get the fulltext back
+        //  return text == null ? null : text.getfullText();
     }
 
     @StyleAttribute(value="textVAlignment", lookupDefault=false)
@@ -226,8 +250,31 @@ public class TextField extends Panel {
     }
 
     @StyleAttribute("Scrollmode")
-    public void ScrollMode(int f ) {
-        text.setScrollMode(f);
+    public void setScrollMode(ScrollMode sm) {
+       /*
+        We have 4 different ScrollModes available in textfields
+        None (0) =  No scrolling at all is allowed. The number of lines is limited by setPrefferedLinecound or setMaxlinecount
+        Full (1) =  Scrolling in X-and Y direction with offset is enabled. Maxlinecount is ignored
+        AutoadjustX (2) = Scrolling in Y direction, X direction is autoadjusted when the line reaches the border, Maxlinecount is ignored
+        AutoadjustY (3) = Scrolling in X direction is allowed. Adding of more lines then set with setMaxlinecount is desactivated
+                          the SingleLine characteristic is a special case of AutoadjustY with only 1 visible line
+        */
+        int smint =0;
+        switch (sm) {
+            case None:
+                smint=0;
+                break;
+            case Full:
+                smint = 1;
+                break;
+            case AutoadjustX:
+                smint =2;
+                break;
+            case AutoadjustY:
+                smint =3;
+                break;
+        }
+        text.setScrollMode(smint);
     }
 
     @StyleAttribute("maxLinecount")
@@ -239,26 +286,56 @@ public class TextField extends Panel {
         return text.getMaxLinecount();
     }
 
-    @StyleAttribute("Textselectmode")
-    public void Textselectmode(boolean onoff ) {
+    public void setTextselectmode(boolean onoff ) {
         if (onoff) {
-            Textselectmode(1); } else {
-            Textselectmode(0);
+            setTextselectmode(TextselectMode.Auto); } else {
+            setTextselectmode(TextselectMode.Off);
         }
     }
 
-    public void Textselectmode(int mode ) {
-         text.setTextselect(mode);
+    @StyleAttribute("Textselectmode") // 2 style attributes for same procedure is not possible
+    public void setTextselectmode(TextselectMode mode ) {
+        /*
+        3 different Textselect modes are available
+        Off (0) - selected text is never shown
+        Auto (1) - the textfield brings options to select and deselect text via keys and key combinations
+                   additional manipulations can be done via code
+        Manuell (2) - textselect options are available via code (addTextselectArea etc.)
+         */
+        int tmp=0;
+        switch (mode) {
+            case Off:
+                tmp =0;
+                break;
+            case Auto:
+                tmp =1;
+                break;
+            case Manuell:
+                tmp =2;
+                break;
+        }
+        text.setTxtselmodeint(tmp);
     }
 
-    public int getTextselectmode() {
-       return text.getTextselect();
+
+    public TextselectMode getTextselectmode() {
+        int tmp = text.getTextselectModeint();
+        switch (tmp) {
+            case 0:
+                return TextselectMode.Off;
+            case 1:
+                return TextselectMode.Auto;
+            case 2:
+                return TextselectMode.Manuell;
+        }
+        return TextselectMode.Off;
     }
 
     public boolean isTextselect() {
         return text.isTextselect();
     }
 
+    @StyleAttribute("TextselectColor")
     public void setselectcolor(ColorRGBA newColor) {
         text.resetSelectColor(newColor);
     }
@@ -275,5 +352,6 @@ public class TextField extends Panel {
     public int[] getTextlinesbyCoordinates(int [] coordinatesXY) {
         return text.getTextlineYX(coordinatesXY);
     }
+
 }
 
