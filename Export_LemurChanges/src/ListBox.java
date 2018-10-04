@@ -992,6 +992,7 @@ public class ListBox<T> extends Panel {
     public void lbremovevalue(int row) {
         if (row > getModel().size()) return;
         getModel().remove(row);
+        if (lbcolumn == null) return;
         for (List<T> elm: lbcolumn){
             elm.remove(row);
         }
