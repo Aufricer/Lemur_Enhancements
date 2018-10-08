@@ -464,7 +464,7 @@ public class ListBox<T> extends Panel {
                     // adjust size.y for multicolumn listboxes
                     if (grid.getVisibleColumns()>1) {
                         for (int t = 1; t < grid.getVisibleColumns();t++) {
-                            size.addLocal((float) (grid.getCell(selected, t+getGridPanel().getColumn()).getSize().clone().x), 0, 0);
+                            if (!(grid.getCell(selected, t + getGridPanel().getColumn()) == null))  size.addLocal((float) (grid.getCell(selected, t+getGridPanel().getColumn()).getSize().clone().x), 0, 0);
                         }
                     }
 
