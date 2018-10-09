@@ -280,13 +280,27 @@ public class ListBoxDemoState extends BaseAppState {
     }
 
     protected void getValue_and_reset_Layout() {
-        // just an example
-        String[] Test = listBox.getlbvalue(1);
-        // change the layout and set gridpanel values
-        listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X,
-                FillMode.ForcedEven,
-                FillMode.Even));
-        listBox.getGridPanel().setSize(listBox.getGridPanel().getCell(0,0).getPreferredSize());
+        // get the text of first row and readd it
+        String[] Test = listBox.getlbvalue(0);
+        listBox.lbaddvalue(Test);
+
+        if (listBox.getGridPanel().getColumnwidths() ==null) {
+            // Change the layout so we can see different column sizes
+            listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.None));
+            // Set a columnwidth for max 5 columns. Note: width is only set if column exist!
+            listBox.getGridPanel().setColumnwidths(new Float[]{60f, 80f, null, 100f, 60f}, true);
+            /*
+            float temp = 0;
+            for (Float f : listBox.getGridPanel().getColumnwidths()) {
+                if (f != null) temp += f;
+            }
+            listBox.setPreferredSize(listBox.getPreferredSize().clone().setX(temp));
+            */
+        } else {
+            listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.ForcedEven));
+            listBox.setPreferredSize(null);
+            listBox.getGridPanel().setColumnwidths(null);
+        }
     }
 
     protected void Color () {
