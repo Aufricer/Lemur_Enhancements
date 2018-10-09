@@ -68,7 +68,7 @@ public class ListBoxDemoState extends BaseAppState {
      */
     private CloseCommand closeCommand = new CloseCommand();
 
-    private com.simsilica.lemur.ListBox listBox;
+    private ListBox listBox;
 
     // Just to give added items a unique suffix
     private int nextItem = 1;
@@ -103,7 +103,7 @@ public class ListBoxDemoState extends BaseAppState {
         GuiGlobals.getInstance().getStyles().getSelector(id, "glass").set("text","<");
 
         // Create a multiline text field with our document model
-        listBox = window.addChild(new com.simsilica.lemur.ListBox());
+        listBox = window.addChild(new ListBox());
         listBox.setVisibleItems(5);
 
 
@@ -296,10 +296,13 @@ public class ListBoxDemoState extends BaseAppState {
             }
             listBox.setPreferredSize(listBox.getPreferredSize().clone().setX(temp));
             */
+            //  listBox.getGridPanel().setHalignements(new HAlignment[]{HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right});
+            listBox.getGridPanel().setHalignements(HAlignment.Center,0);
         } else {
             listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.ForcedEven));
             listBox.setPreferredSize(null);
             listBox.getGridPanel().setColumnwidths(null);
+            listBox.getGridPanel().setHalignements(null);
         }
     }
 
@@ -411,7 +414,6 @@ public class ListBoxDemoState extends BaseAppState {
 
 
     };
-
 }
 
 

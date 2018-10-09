@@ -36,7 +36,6 @@
 
 package com.simsilica.lemur;
 
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.grid.GridModel;
@@ -47,6 +46,7 @@ import com.simsilica.lemur.style.Attributes;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.lemur.style.StyleDefaults;
 import com.simsilica.lemur.style.Styles;
+import sun.swing.MenuItemLayoutHelper;
 
 
 /**
@@ -67,6 +67,7 @@ public class GridPanel extends Panel {
     private Float alpha; // for setting to new children
     private Float[] columnwidths = null;
     private boolean widthsupdate = false;
+    private HAlignment [] columnHalignement = null;
 
     public GridPanel( GridModel<Panel> model ) {
         this(true, model, new ElementId(ELEMENT_ID), null);
@@ -218,7 +219,6 @@ public class GridPanel extends Panel {
                 } else {
                     Panel child = model.getCell(r, c, (Panel)existing);
 
-
                     if (columnwidths != null) {
                         if (columnwidths.length>c) {
                             if (columnwidths[c] !=null)  {
@@ -226,6 +226,17 @@ public class GridPanel extends Panel {
                             } else child.setPreferredSize(null);
                         } else child.setPreferredSize(null);
                     }
+
+                    if (columnHalignement != null) {
+                        if (columnHalignement.length>c) {
+                            if (columnHalignement[c] !=null)  {
+                                ((Button) child).setTextHAlignment(columnHalignement[c]);
+                            } else ((Button) child).setTextHAlignment(HAlignment.Left);
+                        } else ((Button) child).setTextHAlignment(HAlignment.Left);
+                    }
+
+
+
 
                     if( child != existing ) {
                         // Make sure new children pick up the alpha of the container
@@ -324,4 +335,71 @@ public class GridPanel extends Panel {
         return columnwidths;
     }
 
+
+
+    public void setHalignements(HAlignment[] hals) {
+        setHalignements(hals,false);
+    }
+
+    public void setHalignements(HAlignment[] hals, boolean overridestandard) {
+        if (checkexistinghal(hals)) {
+            int i =0;
+            for (HAlignment z:hals) {
+                setHalignementchecked(z,i,overridestandard);
+                i++;
+                if (i>=columnHalignement.length)   return; // we ignore given HAlignement that is out of column bound
+            }
+            if (!overridestandard ) return;
+            for (int u = i; u<columnHalignement.length;u++) {
+                setHalignementchecked(null,u,overridestandard); // override existing HAlignements
+            }
+        }
+    }
+
+    public void setHalignements(HAlignment hal, int column) {
+        checkexistinghal(new HAlignment[]{HAlignment.Center});
+        if (column < columnHalignement.length)  setHalignementchecked(hal,column,true);
+    }
+
+    private void setHalignementchecked(HAlignment hal, int column,boolean override) {
+        if (override || (hal !=null))  {
+            columnHalignement[column] = hal;
+            widthsupdate = true;
+        }
+    }
+
+    private boolean checkexistinghal(HAlignment[] givenfield) {
+        // delete the given Halignements
+        if (givenfield == null) {
+            columnHalignement =null;
+            for (Spatial p: this.getChildren()) {
+                Button x = (Button)((Panel) p);
+                x.setTextHAlignment(HAlignment.Left); //standard HAlignement
+            }
+            widthsupdate = true;
+            return false;
+        }
+        // or prepare if we have no columnHalignement yet
+        HAlignment[] tmp;
+        if (columnHalignement == null) {
+            tmp = new HAlignment[model.getColumnCount()];
+            columnHalignement = tmp;
+        } else {
+            if (!(columnHalignement.length ==model.getColumnCount() )) {
+                tmp = new HAlignment[model.getColumnCount()];
+                int i = 0;
+                for (HAlignment z:columnHalignement) {
+                    tmp[i] =z;
+                    i++;
+                    if (i>=model.getColumnCount()) break;
+                }
+                columnHalignement = tmp;
+            }
+        }
+        return true;
+    }
+
+    public HAlignment[] getColumnHalignement() {
+        return columnHalignement;
+    }
 }
