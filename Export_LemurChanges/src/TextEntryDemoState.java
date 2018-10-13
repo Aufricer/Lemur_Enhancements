@@ -341,8 +341,12 @@ public class TextEntryDemoState extends BaseAppState {
         private long zeit = System.currentTimeMillis();
 
 
+
         @Override
         public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
+            if (!(target instanceof TextField)) return;
+            TextField textField = (TextField) target;
+            DocumentModel document = textField.getDocumentModel();
             if (event.isPressed()) {
                 int [] p = {event.getX(),event.getY()};
                 p =  textField.getTextlinesbyCoordinates(p);
@@ -361,7 +365,8 @@ public class TextEntryDemoState extends BaseAppState {
                 press2 = false;
                 if (System.currentTimeMillis()-zeit < 500){ //Double click
                     int [] p = {0,0};
-                    document.addTextselectArea(0,document.getoffsetText(p,false).length());
+                    //  document.addTextselectArea(0,document.getoffsetText(p,false).length());
+                    document.addTextselectArea(0,document.getfulltext().length());
                 }
                 zeit = System.currentTimeMillis();
             }
@@ -369,8 +374,10 @@ public class TextEntryDemoState extends BaseAppState {
 
         @Override
         public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
-
-            // move the textfield by mousewheel and get the new position if pressed
+            if (!(target instanceof TextField)) return;
+            TextField textField = (TextField) target;
+            DocumentModel document = textField.getDocumentModel();
+            // move the textfield by mousewheel and get the new position if right click is used
             if (!(event.getDeltaWheel() ==0)) {
                 if (event.getDeltaWheel() >0) {
                     document.up();
@@ -381,7 +388,7 @@ public class TextEntryDemoState extends BaseAppState {
 
 
 
-            } // get the new position if mouse is moved
+            } // get the new position if mouse is moved and left clicked
             if ((press) && (event.getDeltaWheel() ==0)) {
                 int [] p = {event.getX(),event.getY()};
                 p =  textField.getTextlinesbyCoordinates(p);
