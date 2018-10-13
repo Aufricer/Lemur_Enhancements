@@ -461,13 +461,12 @@ public class ListBox<T> extends Panel {
                     Vector3f pos = selectorAreaOrigin.add(loc.x, loc.y, loc.z + size.z+2f);
                     selector.setLocalTranslation(pos);
 
-                    // adjust size.y for multicolumn listboxes
+                    // adjust size.x for multicolumn listboxes
                     if (grid.getVisibleColumns()>1) {
                         for (int t = 1; t < grid.getVisibleColumns();t++) {
-                            if (!(grid.getCell(selected, t + getGridPanel().getColumn()) == null))  size.addLocal((float) (grid.getCell(selected, t+getGridPanel().getColumn()).getSize().clone().x), 0, 0);
+                            if (!(grid.getCell(selected, t + getGridPanel().getColumn()) == null))      size.addLocal((float) (grid.getCell(selected, t+getGridPanel().getColumn()).getSize().clone().x), 0, 0);
                         }
                     }
-
                     selector.setSize(size);
                     selector.setPreferredSize(size);
 
@@ -529,7 +528,6 @@ public class ListBox<T> extends Panel {
         if (cell.getBackground() == null) {
             cell.setBackground(new QuadBackgroundComponent(new ColorRGBA(ColorRGBA.BlackNoAlpha)));
             //      cell.setBackground(new QuadBackgroundComponent(new ColorRGBA(ColorRGBA.randomColor())));
-
         }
 
         if( cell != existing ) {
@@ -865,8 +863,6 @@ public class ListBox<T> extends Panel {
             }
             lbcolumn =tmp;
         }
-// wie funktioniert zeile ersetzen?
-//        das muss noch progrsmmiert werden
     }
 
     private void lbcolumnadjust(){
@@ -882,6 +878,7 @@ public class ListBox<T> extends Panel {
 
     private String[] prepareaddValue (String[] stringfield, boolean replacenull) {
         String[] tmpvalue = new String[availableColumns];
+        if (stringfield == null) return tmpvalue;
         if (stringfield.length != tmpvalue.length) {
             int i;
             for (i=0; i<stringfield.length;i++) {
@@ -914,7 +911,7 @@ public class ListBox<T> extends Panel {
 
     public void lbaddvalue(String[] values) {
         int pos = getModel().size();
-        multiadd(pos,prepareaddValue(values,false));
+        multiadd(pos,prepareaddValue(values,true));
     }
 
     public void lbaddvalue(String[] values, boolean insertnullvalues) {
@@ -931,7 +928,7 @@ public class ListBox<T> extends Panel {
 
     public void lbaddvalue(int row,String[] values) {
         if (row > model.size()) return;
-        multiadd(row,prepareaddValue(values,false)); // insert at position
+        multiadd(row,prepareaddValue(values,true)); // insert at position
     }
 
     public void lbbaddvalue(int row, String[] values, boolean insertnullvalues) {
@@ -952,22 +949,40 @@ public class ListBox<T> extends Panel {
         }
     }
 
-    private boolean singlerefresh = true;
-    public void lbreplacevalue(int row, int cell, String cellvalue) {
+    /* ToDo delete if this works without problem
+    13.10.2018 we change the behaviour of updating the columns > 0
+    before we used the grid.refresh function to always have the current state in our grid
+    we avoided calling this method to often
+    Unfortunately this did not increase the version of our model (in case only columns > 0 refreshed)
+    So we could not get an information about the listbox changed from outside
+    we are changing this by making the inc version public and increasing it each time we
+    change a value of the lb in a column > 0 thus the grid.refresh is called via the update loop
+    and only once, no matter how often we increase the model version
+    */
+
+    //  private boolean singlerefresh = true; ToDo 13.10.2018 delete
+    public void lbreplacevalue(int row, int col, String cellvalue) {
         if (row > model.size()-1) return;
-        if (cell == 0) {
+        if (col == 0) {
             model.set(row,(T) cellvalue);
         } else {
             if (lbcolumn == null) return;
-            if (lbcolumn.length < cell) return;
-            if ((lbcolumn[cell-1].size() < row) || (lbcolumn[cell-1].size() ==0)) {
-                int z = row+1 - lbcolumn[cell-1].size(); // number of missing rows
+            if (lbcolumn.length < col) return;
+            if ((lbcolumn[col-1].size() < row) || (lbcolumn[col-1].size() ==0)) {
+                int z = row+1 - lbcolumn[col-1].size(); // number of missing rows
                 for (int x = 0; x < z;x++) {
-                    lbcolumn[cell-1].add(lbcolumn[cell-1].size(), (T) ""); // add missing rows
+                    lbcolumn[col-1].add(lbcolumn[col-1].size(), (T) ""); // add missing rows
                 }
             }
-            lbcolumn[cell-1].set(row,(T) cellvalue);
-            if (singlerefresh) grid.refreshGrid(); // we refresh the only grid onces
+            lbcolumn[col-1].set(row,(T) cellvalue);
+            model.incrementVersion();
+
+            /* ToDo 13.10.2018 delete
+            if (singlerefresh) {
+                grid.refreshGrid(); // we refresh the only grid onces
+                refreshlbmodel(); // cheating - we increase the version of the modelref
+            }
+            */
         }
     }
 
@@ -977,16 +992,19 @@ public class ListBox<T> extends Panel {
 
     public void lbreplacevalue(int row, String[] value,boolean ignorenullvaluesinfield) {
         int i =0;
-        singlerefresh = false; // we dont refresh the grid during calls
+        //    singlerefresh = false; // we dont refresh the grid during calls ToDo 13.10.2018 delete
         for (String x:value) {
             if (((x == null) && (!(ignorenullvaluesinfield))) || (!(x==null)) ) lbreplacevalue(row,i,x);
             i++;
             if (i > availableColumns-1) break; // we ignore values > availablecolumns
         }
-        singlerefresh = true;
-        grid.refreshGrid();
-    }
 
+        /* ToDo 13.10.2018 delete
+        if the version is increased during calls, the grid must be autorefreshed
+         */
+        //    singlerefresh = true;
+        //   grid.refreshGrid();
+    }
 
 
     public void lbremovevalue(int row) {
@@ -997,7 +1015,6 @@ public class ListBox<T> extends Panel {
             elm.remove(row);
         }
     }
-
 
     public String[] getlbvalue(int row) {
         String[] tmp = new String[availableColumns];
@@ -1020,7 +1037,8 @@ public class ListBox<T> extends Panel {
             if (sliderhor.getParent() == null) layout.addChild(sliderhor, BorderLayout.Position.South);
             resetModelhorRange();
         } else {
-            if (!(sliderhor.getParent() == null))   this.layout.removeChild(sliderhor);
+            if (!(sliderhor.getParent() == null))   this.layout.removeChild(sliderhor); // must be detached from layout
+            //     if (!(sliderhor.getParent() == null)) sliderhor.getParent().detachChild(sliderhor);
             baseIndexhor.setValue(0);
         }
     }
