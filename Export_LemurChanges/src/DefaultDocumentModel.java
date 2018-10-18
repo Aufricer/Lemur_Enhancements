@@ -491,6 +491,7 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
     @Override
     public void insert( String text ) {
+        if (text == null) return;
         for( int i = 0; i < text.length(); i++ ) {
             insert(text.charAt(i));
         }
