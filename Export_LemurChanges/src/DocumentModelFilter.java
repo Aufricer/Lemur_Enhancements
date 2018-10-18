@@ -370,6 +370,7 @@ public class DocumentModelFilter implements DocumentModel {
 
     @Override
     public void insert( String text ) {
+        if (text == null) return; // untested
         for( int i = 0; i < text.length(); i++ ) {
             insert(text.charAt(i));
         }
