@@ -345,6 +345,9 @@ public class TextEntryComponent extends AbstractGuiComponent
         // so we need to move it.
         bitmapText.attachChild(cursor);
 
+        // we also need to change the font! as the font parameter is used in getVisibleWidth()
+        this.font = font;
+
         resizeCursor();
         resetCursorPosition();
         resetText();
@@ -820,7 +823,6 @@ public class TextEntryComponent extends AbstractGuiComponent
      *  Checks for changes in the model and updates the text display
      *  or cursor position as necessary.
      */
-
     private class ModelChecker implements GuiUpdateListener {
 
         @Override
@@ -944,10 +946,9 @@ public class TextEntryComponent extends AbstractGuiComponent
         @Override
         public void keyAction( TextEntryComponent source, KeyAction key ) {
 
-            //    if (source.textselect ==1) {
             source.model.deleteSelectedText(false);
             source.model.emptyAnchors();
-            //    }
+
             try {
                 source.model.insert(source.Copyfrom());
             } catch (UnsupportedFlavorException e) {
