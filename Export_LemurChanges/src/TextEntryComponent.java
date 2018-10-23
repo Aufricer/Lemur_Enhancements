@@ -1387,9 +1387,11 @@ public class TextEntryComponent extends AbstractGuiComponent
             return null ;
 
         // get line first
-        y = ymin- bitmapText.getLineHeight();
+
+        y = ymin- bitmapText.getLineHeight()*bitmapText.getWorldScale().y;
+
         while (y >= ymax && y > coordinatesXY[1]) {
-            y -= bitmapText.getLineHeight();
+            y -= bitmapText.getLineHeight()*bitmapText.getWorldScale().y;
             i++;
         }
         // out of visible lines
@@ -1410,12 +1412,13 @@ public class TextEntryComponent extends AbstractGuiComponent
         } else { // otherwise we iterate till the end of our coordinate or textrow
             String row = model.getLine(i).substring(offset_x).toString();
             for (i = 0; i< row.length(); i++) {
-                if (getVisibleWidth(row.substring(0,i).toString())+xmin >= coordinatesXY[0]) break;
+                if (getVisibleWidth(row.substring(0,i).toString())*bitmapText.getWorldScale().x+xmin >= coordinatesXY[0]) break;
             }
             theposition[1] = i+offset_x;
         }
         return theposition;
     }
+
 
     public String getfullText() {
         return model.getfulltext();
