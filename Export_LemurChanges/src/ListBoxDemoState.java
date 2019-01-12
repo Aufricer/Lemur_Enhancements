@@ -288,7 +288,7 @@ public class ListBoxDemoState extends BaseAppState {
             // Change the layout so we can see different column sizes
             listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.None));
             // Set a columnwidth for max 5 columns. Note: width is only set if column exist!
-            listBox.getGridPanel().setColumnwidths(new Float[]{60f, 80f, null, 100f, 60f}, true);
+            listBox.getGridPanel().setColumnwidths(new Float[]{120f, 80f, null, 100f, 60f}, true);
             /*
             float temp = 0;
             for (Float f : listBox.getGridPanel().getColumnwidths()) {

@@ -46,7 +46,6 @@ import com.simsilica.lemur.style.Attributes;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.lemur.style.StyleDefaults;
 import com.simsilica.lemur.style.Styles;
-import sun.swing.MenuItemLayoutHelper;
 
 
 /**
@@ -68,6 +67,7 @@ public class GridPanel extends Panel {
     private Float[] columnwidths = null;
     private boolean widthsupdate = false;
     private HAlignment [] columnHalignement = null;
+
 
     public GridPanel( GridModel<Panel> model ) {
         this(true, model, new ElementId(ELEMENT_ID), null);
