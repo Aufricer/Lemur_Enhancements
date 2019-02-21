@@ -299,6 +299,8 @@ public class TextEntryComponent extends AbstractGuiComponent
 
             // scrollMode and maxLines are reset, thus reset offsets as well
             model.setmaxlines(1);
+            maxLinecount = 1;
+            preferredLineCount = 1;
             setScrollMode(3);
             offset_x =0;
             model.setOffset_X(offset_x);
