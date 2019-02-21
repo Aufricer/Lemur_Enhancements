@@ -987,7 +987,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     public void setScrollMode(int scrollMode) {
         // (0 = None, 1 = Full (X + Y), 2 = Y yes, X will be  auto adjustet, 3 = Y no, X yes (as single line, but with more lines) )
         this.scrollMode = scrollMode;
-        if (scrollMode ==0 || scrollMode ==3) setMaxLinecount(getMaxLinecount());
+        if (scrollMode ==0 || scrollMode ==3) setMaxLinecount(Math.max(1,getMaxLinecount()));
         model.setScrollMode(scrollMode);
         offset_x =0;
         model.setOffset_X(offset_x);
