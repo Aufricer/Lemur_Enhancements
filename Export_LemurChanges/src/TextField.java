@@ -239,7 +239,7 @@ public class TextField extends Panel {
     }
 
 
-    public float getPreferredLineCount() {
+    public int getPreferredLineCount() {
         return text.getPreferredLineCount();
     }
 

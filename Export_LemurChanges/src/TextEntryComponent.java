@@ -585,7 +585,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         invalidate();
     }
 
-    public float getPreferredLineCount() {
+    public int getPreferredLineCount() {
         return preferredLineCount;
     }
 
@@ -971,6 +971,7 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     public void setMaxLinecount(int maxLinecount) {
         this.maxLinecount = maxLinecount;
+        setPreferredLineCount(Math.max(1,getPreferredLineCount()));
         if (!(maxLinecount == 0)) {
             // maxLinecount <= preferredLineCount
             this.maxLinecount = Math.min(maxLinecount,preferredLineCount);
