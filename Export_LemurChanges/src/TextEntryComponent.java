@@ -144,7 +144,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     private VAlignment vAlign = VAlignment.Top;
     private Vector3f preferredSize;
     private float preferredWidth;
-    private int preferredLineCount;
+    private int preferredLineCount; // shown numbers of lines
     private KeyHandler keyHandler = new KeyHandler();
     private Quad cursorQuad;
     private Geometry cursor;
@@ -152,9 +152,10 @@ public class TextEntryComponent extends AbstractGuiComponent
     private boolean singleLine;
     private boolean focused;
     private boolean cursorVisible = true;
+    private Float preferredCursorWidth = null;
 
     private int scrollMode;
-    private int maxLinecount;
+    private int maxLinecount; //max numbers of lines
     private ColorRGBA selectorColor = new ColorRGBA(0,0,255,0.25f);
     private int txtselmodeint;
     private int offset_x = 0;
@@ -191,7 +192,8 @@ public class TextEntryComponent extends AbstractGuiComponent
         this.ancRef = model.createAnchorReference();
 
 
-        cursorQuad = new Quad(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
+        //   cursorQuad = new Quad(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
+        cursorQuad = new Quad(getCursorWidth(), bitmapText.getLineHeight());
         cursor = new Geometry( "cursor", cursorQuad );
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(new ColorRGBA(1,1,1,0.75f), false);
         cursor.setMaterial(mat.getMaterial());
@@ -218,7 +220,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         result.preferredSize = null;
         result.textBox = null;
         result.keyHandler = result.new KeyHandler();
-        result.cursorQuad = new Quad(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
+        result.cursorQuad = new Quad(getCursorWidth(), bitmapText.getLineHeight());
         result.cursor = new Geometry("cursor", cursorQuad);
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(new ColorRGBA(1,1,1,0.75f), false);
         result.cursor.setMaterial(mat.getMaterial());
@@ -298,9 +300,9 @@ public class TextEntryComponent extends AbstractGuiComponent
             actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
 
             // scrollMode and maxLines are reset, thus reset offsets as well
+            preferredLineCount = 1;
             model.setmaxlines(1);
             maxLinecount = 1;
-            preferredLineCount = 1;
             setScrollMode(3);
             offset_x =0;
             model.setOffset_X(offset_x);
@@ -443,8 +445,33 @@ public class TextEntryComponent extends AbstractGuiComponent
         return x;
     }
 
+
+    public void setPreferredCursorWidth( Float f ) {
+        this.preferredCursorWidth = f;
+        resizeCursor();
+        resetCursorPosition();
+    }
+
+    public Float getPreferredCursorWidth() {
+        return preferredCursorWidth;
+    }
+
+    public float getCursorWidth() {
+        if( preferredCursorWidth != null ) {
+            return preferredCursorWidth;
+        }
+        // Because small cursor widths sometimes make the cursor invisible
+        // for some reason, we'll try to detect the cases where pixels = units
+        // and make sure that the width is never smaller than 1 pixel.
+        float height = bitmapText.getLineHeight();
+        if( height > 5 ) {
+            return Math.max(1, height/16f);
+        }
+        return height/16f;
+    }
+
     protected void resizeCursor() {
-        cursorQuad.updateGeometry(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
+        cursorQuad.updateGeometry(getCursorWidth(), bitmapText.getLineHeight());
         cursorQuad.clearCollisionData();
     }
 
@@ -525,6 +552,8 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
 
         cursor.setLocalTranslation(x, y, 0.01f);
+        // Optional - s. Forum https://hub.jmonkeyengine.org/t/lemur-textfield-invisible/36363/26?u=aufricer
+        // cursor.setLocalTranslation(x - getCursorWidth() * 0.5f, y, 0.01f);
     }
 
     public void setText( String text ) {
@@ -537,6 +566,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public String getText() {
+        // returns the currently visible text, not the full text
         return model.getText();
     }
 
@@ -581,7 +611,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     }
 
     public void setPreferredLineCount( int i ) {
-        this.preferredLineCount = i;
+        this.preferredLineCount = Math.max(i,1);
         invalidate();
     }
 
@@ -990,7 +1020,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     public void setScrollMode(int scrollMode) {
         // (0 = None, 1 = Full (X + Y), 2 = Y yes, X will be  auto adjustet, 3 = Y no, X yes (as single line, but with more lines) )
         this.scrollMode = scrollMode;
-        if (scrollMode ==0 || scrollMode ==3) setMaxLinecount(Math.max(getMaxLinecount(),1));
+        if (scrollMode ==0 || scrollMode ==3) setMaxLinecount(Math.max(1,getMaxLinecount()));
         model.setScrollMode(scrollMode);
         offset_x =0;
         model.setOffset_X(offset_x);
@@ -1211,7 +1241,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
         if (textBox == null) {
-            getDocumentModel().setText(getDocumentModel().getText());
+            getDocumentModel().setText(getDocumentModel().getText()); // ToDo why? or getfullText
             return;
         }
 
@@ -1421,7 +1451,6 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
         return theposition;
     }
-
 
     public String getfullText() {
         return model.getfulltext();

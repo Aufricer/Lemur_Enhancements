@@ -166,7 +166,7 @@ public class TextField extends Panel {
     public String getfullText() {
         return text == null ? null : text.getfullText();
     }
-    
+
     @StyleAttribute(value="textVAlignment", lookupDefault=false)
     public void setTextVAlignment( VAlignment a ) {
         text.setVAlignment(a);
