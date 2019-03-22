@@ -1241,7 +1241,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
         if (textBox == null) {
-            getDocumentModel().setText(getDocumentModel().getText()); // ToDo why? or getfullText
+         //   getDocumentModel().setText(getDocumentModel().getText()); // ToDo why? or getfullText
             return;
         }
 
