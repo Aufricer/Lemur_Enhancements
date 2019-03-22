@@ -159,12 +159,14 @@ public class TextField extends Panel {
         text.setText(s);
     }
 
-    public String getText() {
+    public String getText() { // returns the currently visible text
         return text == null ? null : text.getText();
-        // changed to always get the fulltext back
-        //  return text == null ? null : text.getfullText();
     }
 
+    public String getfullText() {
+        return text == null ? null : text.getfullText();
+    }
+    
     @StyleAttribute(value="textVAlignment", lookupDefault=false)
     public void setTextVAlignment( VAlignment a ) {
         text.setVAlignment(a);
