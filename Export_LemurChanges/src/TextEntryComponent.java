@@ -1065,6 +1065,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
 
         // text until startposition will be unchanged
+        if (startline+1 > textmodel.getLineCount()) return;
         for (j =0; j <= startline-1; j++) {
             lng += textmodel.getLine(j).length();
             //   lng += model.getLine(j).length();
