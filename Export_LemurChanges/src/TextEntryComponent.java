@@ -1043,7 +1043,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         double tlng;
         int k;
 
-        if (!(textBox == null)) return; //     in case we call this before the GUIComponent Update was run and textbox exist
+        if (textBox == null) return; //     in case we call this before the GUIComponent Update was run and textbox exist
 
         /*
         AdjustText worked fine for DefaultDocumentModels for DocumentModelFilter we needed to do a few adjustements
