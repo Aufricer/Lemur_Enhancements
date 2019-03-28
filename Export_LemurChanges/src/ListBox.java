@@ -794,6 +794,7 @@ public class ListBox<T> extends Panel {
     private class SelectorClickListener extends DefaultCursorListener {
         @Override
         protected void click(CursorButtonEvent event, Spatial target, Spatial capture) {
+            //  lastuserdeselectedRow = target.getUserData("Row"); maybe later, if needed
             selection.remove(target.getUserData("Row"));
         }
 
