@@ -851,10 +851,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
     }
 
-    /**
-     *  Checks for changes in the model and updates the text display
-     *  or cursor position as necessary.
-     */
+
     private class ModelChecker implements GuiUpdateListener {
 
         @Override
@@ -1097,7 +1094,18 @@ public class TextEntryComponent extends AbstractGuiComponent
                     i++;
                 }
 
-                i = crow.length()- i+1;
+                /*
+                if somehow the textbox has no width or is smaller then even 1 letter the following wordadjust
+                functionality would lead to a null pointer exception. to prevent this we could always check if
+                getVisibleWidth(" ") < textbox.width but by checking the number of letters we are more accurate
+                as we also need the number of letters that are beyond the textbox border we use this calculation
+                to check and break the functionality if necessary
+                 */
+
+                i = crow.length()- i+1; // that is the number of letters that are out of the boarder of the textbox
+                if (i >= lng ) break; // if all letters are out we can not adjust anything and jump to appending the remaining lines as they are
+
+
 
                 // if we adjust words, 10% of visible space line is given to wrap words instead of characters
                 // a word starts where an " " is found before the word
@@ -1243,7 +1251,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
         if (textBox == null) {
-         //   getDocumentModel().setText(getDocumentModel().getText()); // ToDo why? or getfullText
+           // getDocumentModel().setText(getDocumentModel().getfullText());
             return;
         }
 
