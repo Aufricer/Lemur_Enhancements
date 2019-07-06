@@ -489,25 +489,28 @@ public class TextEntryComponent extends AbstractGuiComponent
         int column = model.getCaratColumn();
         int adder =0;
 
+        /*  06.07.2019 - changed this function a bit in structure
+        // ToDo need to be deleted once no errors or bugs are discovered
         if (column < offset_x) {
             offset_x = column;
             resetText();
         }
-
         String row = model.getLine(line);
 
         // before everything else we need to check if the line needs to be adjusted
+
         if (scrollMode == 2 && ((getVisibleWidth(row) > textBox.width) && textBox != null)) {
             textadjust(model.getCaratLine(),true,true);
             return;
         }
+
         // we need only the offset row
         row = row.substring(offset_x,column);
-        // calculation of x was already in getVisibleWidth, therefore code was replaced
         float x = getVisibleWidth(row);
         float y = (-line+model.getOffset_Y()) * bitmapText.getLineHeight();
         y -= bitmapText.getLineHeight();
 
+       // if(x > textBox.width ) {
         if( textBox != null && x > textBox.width ) {
             if( singleLine || scrollMode == 3 || scrollMode == 1) {
                 // Then we can move the text offset and try again
@@ -553,7 +556,83 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         cursor.setLocalTranslation(x, y, 0.01f);
         // Optional - s. Forum https://hub.jmonkeyengine.org/t/lemur-textfield-invisible/36363/26?u=aufricer
-        // cursor.setLocalTranslation(x - getCursorWidth() * 0.5f, y, 0.01f);
+       // cursor.setLocalTranslation(x - getCursorWidth() * 0.5f, y, 0.01f);
+
+
+// neu
+*/
+
+        if (column < offset_x) {
+            offset_x = column;
+            resetText();
+        }
+
+        String row = model.getLine(line);
+
+        if (textBox != null) {
+            // if textbox exist we need to check first if the line needs to be adjusted
+            if (scrollMode == 2 && (getVisibleWidth(row) > textBox.width)) {
+                textadjust(model.getCaratLine(), true, true);
+                return;
+            }
+        }
+
+        // we need only the offset row
+        row = row.substring(offset_x,column);
+        float x = getVisibleWidth(row);
+        float y = (-line+model.getOffset_Y()) * bitmapText.getLineHeight();
+        y -= bitmapText.getLineHeight();
+
+        // we check if textBox exist, if not we just set our cursor as the element will be stretched
+        if (textBox == null) {
+            cursorVisible = true;
+            resetCursorState();
+            cursor.setLocalTranslation(x, y, 0.01f);
+            // Optional - s. Forum https://hub.jmonkeyengine.org/t/lemur-textfield-invisible/36363/26?u=aufricer
+            // cursor.setLocalTranslation(x - getCursorWidth() * 0.5f, y, 0.01f);
+            return;
+        }
+
+
+        // we check if the cursor is out of visible field
+        if(x > textBox.width ) {
+            if( singleLine || scrollMode == 3 || scrollMode == 1) {
+                // if single line is selected and cursor went back it was possible that the text field was
+                // stretched and stretched. Therefore we will set a preferred size/width the first time we have an offset
+                //     if (getPreferredSize() == null) { setPreferredSize(new Vector3f(textBox.width,bitmapText.getLineHeight()*maxLinecount,0));); }
+                if (preferredWidth == 0) {
+                    setPreferredWidth(textBox.width);
+                    System.out.println("textfield width set automatically with :" + textBox.width);
+                }
+                // Then we can move the text offset and try again
+                // Calculation of offset x by adding 1 and recalling this function causes
+                // stack overflow errors, once longer texts are added to a line (e.g. 2.000 words at once)
+                // by calculating the offset directly in a loop, based on current offset the
+                // recursive calls of the whole function can be reduced to a few,
+                // which is still not perfect, but works OK (tested with adding 120.000 characters at once)
+                do {
+                    adder++;
+                } while (getVisibleWidth(row.substring(adder,column-offset_x)) > textBox.width);
+                offset_x +=adder;
+                resetText();
+                resetCursorPosition();
+                return;
+            } else if (scrollMode ==2) {
+                // depending on scrollMode we may just adjust this line again
+                textadjust(model.getCaratLine(),true,true);
+                return;
+            }
+            else {
+                // Make it invisible in all other cases
+                cursorVisible = false;
+                resetCursorState();
+            }
+        } else { // make it visible once the cursor is inside the textfield, this may happen after several calls of this function
+            cursorVisible = true;
+            resetCursorState();
+        }
+        // finally set the right position of the cursor (inside the textfield)
+        cursor.setLocalTranslation(x, y, 0.01f);
     }
 
     public void setText( String text ) {
