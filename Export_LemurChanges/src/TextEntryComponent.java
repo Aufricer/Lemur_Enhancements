@@ -1040,6 +1040,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         double tlng;
         int k;
 
+
         if (textBox == null) return; //     in case we call this before the GUIComponent Update was run and textbox exist
 
         /*
@@ -1064,7 +1065,7 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         // text until startposition will be unchanged
         if (startline+1 > textmodel.getLineCount()) return;
-        for (j =0; j <= startline-1; j++) {
+        for (j =0; j <= startline-1 ; j++) {
             lng += textmodel.getLine(j).length();
             //   lng += model.getLine(j).length();
         }
@@ -1251,7 +1252,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
         if (textBox == null) {
-           // getDocumentModel().setText(getDocumentModel().getfullText());
+            // getDocumentModel().setText(getDocumentModel().getfullText());
             return;
         }
 
@@ -1428,6 +1429,15 @@ public class TextEntryComponent extends AbstractGuiComponent
         // the coordinates are not inside the textbox
         if ((!(coordinatesXY[0] >=xmin && coordinatesXY[0] <= xmax)) || (!(coordinatesXY[1] >=ymax && coordinatesXY[1] <= ymin)))
             return null ;
+
+        /*
+         maxlinecount or preferedlinecount is not defined in order to not destroy the element by setting any maxlinecount
+         and thus preferedlinecount we just break the function here
+          */
+        if (maxLinecount <=0) {
+            // ToDo Make a small warning
+            return null;
+        }
 
         // get line first
 
