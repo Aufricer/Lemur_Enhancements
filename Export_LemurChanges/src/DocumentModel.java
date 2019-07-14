@@ -238,6 +238,11 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     void setOffset_X(int offset_X);
 
+// set the current offset in Y direction (limited by documentmodel)
+
+    void setOffset_Y(int newYoffsetY);
+
+
     // adds the given position of text to the anchors of textselect areas
     // position is checked against textlenght and shrinked or ignored automatically
     // existing and overlapping textselect areas will be merged
@@ -274,6 +279,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     // returns a versioned Reference of the Anchor
     // can be used to check for updates of textselect areas
+
 
     VersionedReference<Integer> createAnchorReference();
 

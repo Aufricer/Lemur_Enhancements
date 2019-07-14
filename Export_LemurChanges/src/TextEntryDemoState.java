@@ -37,11 +37,13 @@
 package demo;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.math.ColorRGBA;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.SpringGridLayout;
@@ -78,8 +80,10 @@ public class TextEntryDemoState extends BaseAppState {
     public TextEntryDemoState() {
     }
 
+    protected Node lGuiNode;
     @Override
     protected void initialize( Application app ) {
+
     }
 
     @Override
@@ -116,6 +120,7 @@ public class TextEntryDemoState extends BaseAppState {
         buttons.addChild(new ActionButton(new CallMethodAction(this, "back")));
         buttons.addChild(new ActionButton(new CallMethodAction(this, "insert")));
         buttons.addChild(new ActionButton(new CallMethodAction(this, "delete")));
+        buttons.addChild(new ActionButton(new CallMethodAction(this, "OffsetY")));
 
 
         Container button2 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)));
@@ -123,6 +128,7 @@ public class TextEntryDemoState extends BaseAppState {
         button2.addChild(new ActionButton(new CallMethodAction(this, "SelectMode")));
         button2.addChild(new ActionButton(new CallMethodAction(this, "adjust_and_addAreas")));
         button2.addChild(new ActionButton(new CallMethodAction(this, "Color")));
+
 
         // Add a close button to both show that the layout is working and
         // also because it's better UX... even if the popup will close if
@@ -136,11 +142,21 @@ public class TextEntryDemoState extends BaseAppState {
 
         // Position the window and pop it up
         window.setLocalTranslation(400, 400, 100);
+        //    getState(PopupState.class).showPopup(window, closeCommand);
+        // Schließt, wenn außerhalb geklickt wurde und führt zusätzlich das übergebene Command (closeCommand) aus
+        //        getState(PopupState.class).showPopup(window); //würde das Command nicht ausführen
+        // Also so ähnlich wie die on Close Methode...
 
+        // Man muss im PopUpState nach der richtigen Methode suchen! Nachfolgend z.B. bleibt der Fokus auf dem GUI Element
+        //     getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,ColorRGBA.randomColor());
+        //     PopupState.ClickMode.ConsumeAndClose; --> Geht weg und der andere Klick wird weiter benutzt
+        //    Lemur\src\main\java\com\simsilica\lemur\event\PopupState.java
+        // Es wird also im Hintergrund ein Objekt gesetzt
 
         getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,null);
 
-      MouseEventControl.addListenersToSpatial(window,
+        // wir können window nehmen und nicht window child txtlabel da die anderen elemente alle die clicks abfangen!
+        MouseEventControl.addListenersToSpatial(window,
                 new DefaultMouseListener() {
                     private boolean gedrueckt = false;
                     private int[] pos = {0,0};
@@ -183,10 +199,8 @@ public class TextEntryDemoState extends BaseAppState {
         //  textField.setselectcolor(new ColorRGBA(ColorRGBA.randomColor()));
         textField.setselectcolor(new ColorRGBA(ColorRGBA.Red));
 
-
+        //  textField.scale(0.5f,0.8f,1);
     }
-
-
 
     @Override
     protected void onDisable() {
@@ -314,7 +328,7 @@ public class TextEntryDemoState extends BaseAppState {
                 try the add, del and reverse functionality in textselect mode Auto!
                 */
 
-            textField.adjustText(0,true,false);
+            textField.adjustText(1,true,false);
             int [] xx = {0,0};
             System.out.println(document.getoffsetText(xx ,false).length());
             int jj = document.getoffsetText(xx ,false).length();
@@ -323,6 +337,7 @@ public class TextEntryDemoState extends BaseAppState {
             }
         }
     }
+
     protected void Color() {
         // our textselect can have different colors
         // please note, that the alpha will be ignored and is always 0.25
@@ -331,6 +346,11 @@ public class TextEntryDemoState extends BaseAppState {
         } else {
             textField.setselectcolor(new ColorRGBA(0,0,255,0.25f));
         }
+    }
+
+
+    protected void OffsetY() {
+        document.setOffset_Y(2);
     }
 
     private class txtfieldselector extends DefaultMouseListener {

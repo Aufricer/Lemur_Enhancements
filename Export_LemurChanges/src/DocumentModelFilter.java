@@ -256,6 +256,11 @@ public class DocumentModelFilter implements DocumentModel {
     }
 
     @Override
+    public void setOffset_Y(int offset_Y) {
+        delegate.setOffset_Y(offset_Y);
+    }
+
+    @Override
     public void addTextselectArea(int startpos, int endpos) {
         delegate.addTextselectArea(startpos,endpos);
     }

@@ -805,6 +805,8 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
 
     @Override
     public Integer findCaratValue(int[] location) {
+        // location [0] = line
+        // location [1] = column
         int i;
         int lng=0;
 
@@ -820,6 +822,23 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         }
         return lng;
     }
+
+    @Override
+    public void setOffset_Y(int newYoffsetY){
+        newYoffsetY = Math.max(0,newYoffsetY);
+        // no activity if we can not scroll in Y direction
+        if (scrollMode ==0 || scrollMode ==3) return;
+        // max available Y Offset
+        newYoffsetY = Math.min(newYoffsetY, getLineCount()-maxlines);
+        newYoffsetY = Math.max(0,newYoffsetY);
+        // finaly we change our offset Y and recalculate and refresh text
+        if (!(newYoffsetY == offset_Y)) {
+            offset_Y = newYoffsetY;
+            version++;
+            composite = null;
+        }
+    }
+
     // end of new stuff
 
     private class Carat implements VersionedObject<Integer> {
