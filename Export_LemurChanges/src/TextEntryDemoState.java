@@ -37,13 +37,11 @@
 package demo;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.math.ColorRGBA;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.SpringGridLayout;
@@ -80,7 +78,7 @@ public class TextEntryDemoState extends BaseAppState {
     public TextEntryDemoState() {
     }
 
-    protected Node lGuiNode;
+
     @Override
     protected void initialize( Application app ) {
 
