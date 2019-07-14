@@ -208,8 +208,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
 
     public void setmaxlines(int ml);
 
-    // update the Carat and setting line + column of the directly as well as taking offset into consideration
-    // updating the current carat position by setting an absolute or relative value
+    // updating the current carat position by setting an absolute or relative to current position value
     // the function will set line and column of the document model automatically
     // and is adjusting the offset if needed
 
