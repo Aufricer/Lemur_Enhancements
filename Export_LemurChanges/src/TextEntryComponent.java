@@ -161,6 +161,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     private int offset_x = 0;
     private Quad textselectQuad;
     private Geometry selectbar;
+    private boolean readonly = false; // prevent key input in textfields -- not for public use maybe
 
 
     private VersionedReference<DocumentModel> modelRef;
@@ -169,9 +170,9 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     private GuiUpdateListener updateListener = new ModelChecker();
 
-
-
     private Map<KeyAction,KeyActionListener> actionMap = new HashMap<KeyAction,KeyActionListener>(standardActions);
+
+
 
     public TextEntryComponent( BitmapFont font ) {
         this( new DefaultDocumentModel(), font );
@@ -228,6 +229,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         result.bitmapText.attachChild(cursor);
         result.resetText();
 
+        result.readonly = readonly;
         return result;
     }
 
@@ -918,7 +920,7 @@ public class TextEntryComponent extends AbstractGuiComponent
                 // Making sure that no matter what, certain
                 // characters never make it directly to the
                 // document
-                if( evt.getKeyChar() >= 32 ) {
+                if(( evt.getKeyChar() >= 32 ) && (!(readonly))) { // prevent keyinput
                     if (txtselmodeint ==1) {
                         model.deleteSelectedText(false);
                         model.emptyAnchors();
@@ -930,6 +932,16 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
     }
 
+    /**
+     *  Checks for changes in the model and updates the text display
+     *  or cursor position as necessary.
+     */
+    // Das GUICONTROL hat in seinem Update die Funktion GUIUPDATEListener
+    // Der UpdateListener wurde in Zeile 197 hinzugefügt (nur für TextEntryComponenten)
+    // laufen die Updates, laufen auch die ControlUpdates
+    // Das GUI Control ist ein Control
+    // Somit läuft bei den TextEntryComponenten dieses Update
+    // Bei den anderen Elementen nicht!
 
     private class ModelChecker implements GuiUpdateListener {
 
@@ -1553,6 +1565,13 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     public String getfullText() {
         return model.getfulltext();
+    }
+
+    public void setReadonlymode(boolean ro) {
+        this.readonly = ro;
+    }
+    public boolean getReadonlymode (){
+        return this.readonly;
     }
 
 }

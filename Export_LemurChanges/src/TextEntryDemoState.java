@@ -126,6 +126,8 @@ public class TextEntryDemoState extends BaseAppState {
         button2.addChild(new ActionButton(new CallMethodAction(this, "SelectMode")));
         button2.addChild(new ActionButton(new CallMethodAction(this, "adjust_and_addAreas")));
         button2.addChild(new ActionButton(new CallMethodAction(this, "Color")));
+        button2.addChild(new ActionButton(new CallMethodAction(this, "readonly")));
+
 
 
         // Add a close button to both show that the layout is working and
@@ -349,6 +351,10 @@ public class TextEntryDemoState extends BaseAppState {
 
     protected void OffsetY() {
         document.setOffset_Y(2);
+    }
+
+    protected void readonly() {
+         textField.setreadonly(!textField.getReadonlymode());
     }
 
     private class txtfieldselector extends DefaultMouseListener {

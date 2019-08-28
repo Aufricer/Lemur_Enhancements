@@ -144,6 +144,7 @@ public class TextField extends Panel {
         attrs.set("Scrollmode", ScrollMode.None,false);
         attrs.set("maxLinecount", 1,false);
         attrs.set("Textselectmode", TextselectMode.Auto,false);
+        attrs.set("readonly",false, false);
     }
 
     public Map<KeyAction,KeyActionListener> getActionMap() {
@@ -166,6 +167,7 @@ public class TextField extends Panel {
     public String getfullText() {
         return text == null ? null : text.getfullText();
     }
+
 
     @StyleAttribute(value="textVAlignment", lookupDefault=false)
     public void setTextVAlignment( VAlignment a ) {
@@ -226,7 +228,6 @@ public class TextField extends Panel {
         text.setPreferredWidth(f);
     }
 
-
     public float getPreferredWidth() {
         return text.getPreferredWidth();
     }
@@ -245,6 +246,14 @@ public class TextField extends Panel {
         return text.getPreferredLineCount();
     }
 
+    @StyleAttribute(value = "readonly", lookupDefault = false)
+    public void setreadonly(boolean readonly) {
+        text.setReadonlymode(readonly);
+    }
+
+    public boolean getReadonlymode() {
+        return text.getReadonlymode();
+    }
 
     @Override
     public String toString() {
@@ -354,6 +363,21 @@ public class TextField extends Panel {
     public int[] getTextlinesbyCoordinates(int [] coordinatesXY) {
         return text.getTextlineYX(coordinatesXY);
     }
+
+    /**
+     *  Sets the preferred with of the cursor quad.  If set to null then
+     *  the default behavior is used.  See TextEntryComponent.setPreferredCursorWidth().
+     */
+    @StyleAttribute("preferredCursorWidth")
+    public void setPreferredCursorWidth( Float f ) {
+        text.setPreferredCursorWidth(f);
+    }
+
+    public Float getPreferredCursorWidth() {
+        return text.getPreferredCursorWidth();
+    }
+
+
 
 }
 
