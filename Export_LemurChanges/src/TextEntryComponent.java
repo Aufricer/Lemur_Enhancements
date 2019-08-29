@@ -102,7 +102,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     public static final KeyActionListener FOCUS_PREVIOUS = new FocusChange(TraversalDirection.Previous);
     public static final KeyActionListener FOCUS_DOWN = new FocusChange(TraversalDirection.Down);
     public static final KeyActionListener FOCUS_UP = new FocusChange(TraversalDirection.Up);
-    // New
+
     public static final KeyActionListener Shiftleft = new SelectLeft();
     public static final KeyActionListener ShiftRight = new SelectRight();
     public static final KeyActionListener ShiftUp = new SelectUp();
@@ -118,7 +118,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     public static final KeyActionListener SPACESELECT = new Space_Anchor();
 
 
-
+/*
     private static final Map<KeyAction,KeyActionListener> standardActions = new HashMap<KeyAction,KeyActionListener>();
     static {
         standardActions.put(new KeyAction(KeyInput.KEY_HOME), LINE_HOME);
@@ -136,6 +136,74 @@ public class TextEntryComponent extends AbstractGuiComponent
         standardActions.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
         standardActions.put(new KeyAction(KeyInput.KEY_DELETE), DELETE);
     }
+*/
+
+    private static final Map<KeyAction,KeyActionListener> standardActions = new HashMap<KeyAction,KeyActionListener>();
+    static {
+        // actions that are "constant"
+        standardActions.put(new KeyAction(KeyInput.KEY_HOME), LINE_HOME);
+        standardActions.put(new KeyAction(KeyInput.KEY_END), LINE_END);
+        standardActions.put(new KeyAction(KeyInput.KEY_HOME, KeyModifiers.CONTROL_DOWN), DOC_HOME);
+        standardActions.put(new KeyAction(KeyInput.KEY_END, KeyModifiers.CONTROL_DOWN), DOC_END);
+
+        standardActions.put(new KeyAction(KeyInput.KEY_LEFT), LEFT);
+        standardActions.put(new KeyAction(KeyInput.KEY_RIGHT), RIGHT);
+        standardActions.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
+        standardActions.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+
+        standardActions.put(new KeyAction(KeyInput.KEY_BACK), BACKSPACE);
+        standardActions.put(new KeyAction(KeyInput.KEY_DELETE), DELETE);
+
+
+    }
+
+    private static final Map<KeyAction,KeyActionListener> singleLineActions = new HashMap<KeyAction,KeyActionListener>();
+    static {
+        singleLineActions.put(new KeyAction(KeyInput.KEY_RETURN), FOCUS_NEXT);
+        singleLineActions.put(new KeyAction(KeyInput.KEY_NUMPADENTER), FOCUS_NEXT);
+        singleLineActions.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
+        singleLineActions.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
+    }
+
+    private static final Map<KeyAction,KeyActionListener> multiLineActions = new HashMap<KeyAction,KeyActionListener>();
+    static {
+        multiLineActions.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+        multiLineActions.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+        multiLineActions.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
+        multiLineActions.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
+    }
+
+    private static final Map<KeyAction,KeyActionListener> txtselectActions = new HashMap<KeyAction,KeyActionListener>();
+    static {
+        txtselectActions.put(new KeyAction(KeyInput.KEY_LEFT , KeyModifiers.SHIFT_DOWN), Shiftleft);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_RIGHT , KeyModifiers.SHIFT_DOWN), ShiftRight);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_UP , KeyModifiers.SHIFT_DOWN), ShiftUp);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_DOWN , KeyModifiers.SHIFT_DOWN), ShiftDown);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_HOME, KeyModifiers.SHIFT_DOWN), ShiftLineHome);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_END, KeyModifiers.SHIFT_DOWN), ShiftLineEnd);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_HOME, KeyModifiers.CONTROL_DOWN, KeyModifiers.SHIFT_DOWN), ShiftDocHome);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_END, KeyModifiers.CONTROL_DOWN,KeyModifiers.SHIFT_DOWN), ShiftDocEnd);
+
+        txtselectActions.put(new KeyAction(KeyInput.KEY_A, KeyModifiers.CONTROL_DOWN), STRA);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_C, KeyModifiers.CONTROL_DOWN), STRC);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_X, KeyModifiers.CONTROL_DOWN), STRX);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_V, KeyModifiers.CONTROL_DOWN), STRV);
+        txtselectActions.put(new KeyAction(KeyInput.KEY_SPACE), SPACESELECT);
+
+    }
+
+    private static final Map<KeyAction,KeyActionListener> inputActions = new HashMap<KeyAction,KeyActionListener>();
+    static {
+        // Actions that change the input of the textfield
+        inputActions.put(new KeyAction(KeyInput.KEY_BACK), BACKSPACE);
+        inputActions.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+        inputActions.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+        inputActions.put(new KeyAction(KeyInput.KEY_DELETE), DELETE);
+        inputActions.put(new KeyAction(KeyInput.KEY_X, KeyModifiers.CONTROL_DOWN), STRX);
+        inputActions.put(new KeyAction(KeyInput.KEY_V, KeyModifiers.CONTROL_DOWN), STRV);
+        inputActions.put(new KeyAction(KeyInput.KEY_SPACE), SPACESELECT);
+    }
+
 
     private BitmapFont font;
     private BitmapText bitmapText;
@@ -161,7 +229,7 @@ public class TextEntryComponent extends AbstractGuiComponent
     private int offset_x = 0;
     private Quad textselectQuad;
     private Geometry selectbar;
-    private boolean readonly = false; // prevent key input in textfields -- not for public use maybe
+    private boolean readonly = false; // prevent key input in textfields
 
 
     private VersionedReference<DocumentModel> modelRef;
@@ -170,7 +238,7 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     private GuiUpdateListener updateListener = new ModelChecker();
 
-    private Map<KeyAction,KeyActionListener> actionMap = new HashMap<KeyAction,KeyActionListener>(standardActions);
+    private Map<KeyAction,KeyActionListener> actionMap = new HashMap<KeyAction,KeyActionListener>(standardActions); // map of current keybindings
 
 
 
@@ -294,12 +362,12 @@ public class TextEntryComponent extends AbstractGuiComponent
     public void setSingleLine( boolean f ) {
         this.singleLine = f;
         if( singleLine ) {
-            actionMap.put(new KeyAction(KeyInput.KEY_RETURN), FOCUS_NEXT);
-            actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), FOCUS_NEXT);
-            actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
-            actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
-            actionMap.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
-            actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_RETURN), FOCUS_NEXT);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), FOCUS_NEXT);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
+            //        actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
 
             // scrollMode and maxLines are reset, thus reset offsets as well
             preferredLineCount = 1;
@@ -309,20 +377,23 @@ public class TextEntryComponent extends AbstractGuiComponent
             offset_x =0;
             model.setOffset_X(offset_x);
 
-        } else {
-            actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
-            actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+        } //else {
 
-            // We may choose to do something different with tab someday... but
-            // the user can also just remove the action if they like.
-            actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
-            actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+        //      actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+        //      actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
 
-            actionMap.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
-            actionMap.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
+        // We may choose to do something different with tab someday... but
+        // the user can also just remove the action if they like.
+        //      actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
+        //      actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+
+        //     actionMap.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
+        //     actionMap.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
 
 
-        }
+        //  }
+
+        updatekeybindings();
     }
 
     public boolean isSingleLine() {
@@ -490,79 +561,6 @@ public class TextEntryComponent extends AbstractGuiComponent
         int line = model.getCaratLine();
         int column = model.getCaratColumn();
         int adder =0;
-
-        /*  06.07.2019 - changed this function a bit in structure
-        // ToDo need to be deleted once no errors or bugs are discovered
-        if (column < offset_x) {
-            offset_x = column;
-            resetText();
-        }
-        String row = model.getLine(line);
-
-        // before everything else we need to check if the line needs to be adjusted
-
-        if (scrollMode == 2 && ((getVisibleWidth(row) > textBox.width) && textBox != null)) {
-            textadjust(model.getCaratLine(),true,true);
-            return;
-        }
-
-        // we need only the offset row
-        row = row.substring(offset_x,column);
-        float x = getVisibleWidth(row);
-        float y = (-line+model.getOffset_Y()) * bitmapText.getLineHeight();
-        y -= bitmapText.getLineHeight();
-
-       // if(x > textBox.width ) {
-        if( textBox != null && x > textBox.width ) {
-            if( singleLine || scrollMode == 3 || scrollMode == 1) {
-                // Then we can move the text offset and try again
-
-                // in the example the preferred size was not set, an offset could stretch the single lined textfields
-                // once the cursor went back
-                // therefore we will set a preferred size/width the first time we have an offset
-                //     if (getPreferredSize() == null) { setPreferredSize(new Vector3f(textBox.width,bitmapText.getLineHeight()*maxLinecount,0));); }
-
-                if (preferredWidth == 0) {
-                    setPreferredWidth(textBox.width);
-                    System.out.println("textfield width set automatically with :" + textBox.width);
-                }
-
-                // Calculation of offset x by adding 1 and recalling this function causes
-                // stack overflow errors, once longer texts are added to a line (e.g. 2.000 words at once)
-                // by calculating the offset directly in a loop, based on current offset the
-                // recursive calls of the whole function can be reduced to a few,
-                // which is still not perfect, but works OK (tested with adding 120.000 characters at once)
-
-                do {
-                    adder++;
-                } while (getVisibleWidth(row.substring(adder,column-offset_x)) > textBox.width);
-                offset_x +=adder;
-
-                resetText();
-                resetCursorPosition();
-                return;
-            } else if (scrollMode ==2) {
-                // depending on scrollMode we may just adjust this line
-                textadjust(model.getCaratLine(),true,true);
-                return;
-            }
-            else {
-                // Make it invisible
-                cursorVisible = false;
-                resetCursorState();
-            }
-        } else {
-            cursorVisible = true;
-            resetCursorState();
-        }
-
-        cursor.setLocalTranslation(x, y, 0.01f);
-        // Optional - s. Forum https://hub.jmonkeyengine.org/t/lemur-textfield-invisible/36363/26?u=aufricer
-       // cursor.setLocalTranslation(x - getCursorWidth() * 0.5f, y, 0.01f);
-
-
-// neu
-*/
 
         if (column < offset_x) {
             offset_x = column;
@@ -1440,9 +1438,13 @@ public class TextEntryComponent extends AbstractGuiComponent
         } else {
             removTextselectQuads();
         }
-        // in case we have the "standard" Textselect mode activated we add some keybindings
-        // user still can create anchors by using Textselect mode 2 and implementing the behaviour he wants
+
+        updatekeybindings(); // to add or update the necessary keybindings
+/*
+
         if (txtselmodeint ==1) {
+            txtselectActions.forEach(actionMap::put);
+            /*
             actionMap.put(new KeyAction(KeyInput.KEY_LEFT , KeyModifiers.SHIFT_DOWN), Shiftleft);
             actionMap.put(new KeyAction(KeyInput.KEY_RIGHT , KeyModifiers.SHIFT_DOWN), ShiftRight);
             actionMap.put(new KeyAction(KeyInput.KEY_UP , KeyModifiers.SHIFT_DOWN), ShiftUp);
@@ -1461,6 +1463,7 @@ public class TextEntryComponent extends AbstractGuiComponent
 
 
         } else {
+
             actionMap.remove(new KeyAction(KeyInput.KEY_LEFT , KeyModifiers.SHIFT_DOWN), Shiftleft);
             actionMap.remove(new KeyAction(KeyInput.KEY_RIGHT , KeyModifiers.SHIFT_DOWN), ShiftRight);
             actionMap.remove(new KeyAction(KeyInput.KEY_UP , KeyModifiers.SHIFT_DOWN), ShiftUp);
@@ -1475,7 +1478,9 @@ public class TextEntryComponent extends AbstractGuiComponent
             actionMap.remove(new KeyAction(KeyInput.KEY_X, KeyModifiers.CONTROL_DOWN), STRX);
             actionMap.remove(new KeyAction(KeyInput.KEY_V, KeyModifiers.CONTROL_DOWN), STRV);
             actionMap.remove(new KeyAction(KeyInput.KEY_SPACE), SPACESELECT);
-        }
+
+            actionMap.keySet().removeAll(txtselectActions.keySet());
+        } */
 
     }
 
@@ -1569,9 +1574,49 @@ public class TextEntryComponent extends AbstractGuiComponent
 
     public void setReadonlymode(boolean ro) {
         this.readonly = ro;
+        updatekeybindings();
+        // we delete all unessesary actions
+      /*
+        if (this.readonly) {
+            actionMap.remove(new KeyAction(KeyInput.KEY_BACK), BACKSPACE);
+            actionMap.remove(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+            actionMap.remove(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+            actionMap.remove(new KeyAction(KeyInput.KEY_DELETE), DELETE);
+
+            actionMap.keySet().removeAll(standardActions.keySet());
+            standardActions.forEach(actionMap::putIfAbsent);
+            actionMap.putIfAbsent(new KeyAction(KeyInput.KEY_BACK), BACKSPACE);
+
+
+
+        } else {
+            actionMap.put(new KeyAction(KeyInput.KEY_BACK), BACKSPACE);
+            actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+            actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+            actionMap.put(new KeyAction(KeyInput.KEY_DELETE), DELETE);
+        } */
     }
+
     public boolean getReadonlymode (){
         return this.readonly;
+    }
+
+    private void updatekeybindings() {
+        standardActions.forEach(actionMap::putIfAbsent); //add standard actions if not yet done
+        if (isSingleLine()) {
+            singleLineActions.forEach(actionMap::put); // update or set singleline actions
+        } else {
+            multiLineActions.forEach(actionMap::put);  // update or set multiLine actions
+        }
+        if (txtselmodeint ==1) { // set or update textselect keybindings
+            // activate user keybinding
+            txtselectActions.forEach(actionMap::put);
+        } else {
+            actionMap.keySet().removeAll(txtselectActions.keySet());
+            // user is not able to create or modify anchors via keys but they can be updated via code and are shown
+            // as long as textselecmode is not 0
+        }
+        if (readonly)  actionMap.keySet().removeAll(inputActions.keySet()); // delete inputActions if necessary
     }
 
 }

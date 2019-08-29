@@ -109,7 +109,7 @@ public class TextField extends Panel {
 
         addControl(new MouseEventControl(FocusMouseListener.INSTANCE));
 
-        if( applyStyles ) {
+        if( applyStyles ) { // applyStyles is always true!
             Styles styles = GuiGlobals.getInstance().getStyles();
             styles.applyStyles(this, elementId.getId(), style);
         }
@@ -132,11 +132,12 @@ public class TextField extends Panel {
     @StyleDefaults(ELEMENT_ID)
     public static void initializeDefaultStyles( Attributes attrs ) {
         /*
-        added 3 standard attributes to the textfield (Scrollmode, maxLinecount and Textselectmode)
+        added 4 standard attributes to the textfield (Scrollmode, maxLinecount, Textselectmode and readonly)
         in case they are not set during styling we set the defaults at this place
         ScrollMode = no adjustements
         Maxlinecount =  by default the textfield has at least 1 line
         Textselect = we use the inbuilt select options
+        readonly = we delete key input and prevent user changes on textfield except those set via style
          */
         attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0,0,0,1)), false);
         attrs.set("singleLine", true,false);

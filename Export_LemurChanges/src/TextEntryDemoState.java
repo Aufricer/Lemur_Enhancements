@@ -312,6 +312,13 @@ public class TextEntryDemoState extends BaseAppState {
             case Manuell:
                 helper += "\nTextselect mode Manuell (2) activated.\nManipulate selected text via code only. There is no inbuild option available";
         }
+        boolean i = textField.getReadonlymode();
+        if (i == true) {
+            helper += "\nTextfield is readonly.\nUser cant change it but is \nstill able to copy or select (if activated)";
+        } else if (i == false) {
+            helper += "\nTextfield is accessible.\n User can change it, as he wants";
+        }
+
         return helper;
     }
 
@@ -354,7 +361,10 @@ public class TextEntryDemoState extends BaseAppState {
     }
 
     protected void readonly() {
-         textField.setreadonly(!textField.getReadonlymode());
+        textField.setreadonly(!textField.getReadonlymode());
+        textField.setText(exampleTexts());
+        textField.adjustText(0,true,false);
+
     }
 
     private class txtfieldselector extends DefaultMouseListener {
