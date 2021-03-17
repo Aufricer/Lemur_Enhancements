@@ -2,6 +2,7 @@ import ViewPortPanel.ViewportPanel;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapText;
 import com.jme3.light.AmbientLight;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -16,9 +17,13 @@ import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.core.GuiControl;
 import com.simsilica.lemur.core.VersionedReference;
+import com.simsilica.lemur.event.KeyAction;
+import com.simsilica.lemur.event.KeyActionListener;
 import com.simsilica.lemur.event.MouseEventControl;
 import com.simsilica.lemur.style.*;
+import com.simsilica.lemur.text.DocumentModel;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class ReadField extends Panel {
@@ -47,7 +52,7 @@ public class ReadField extends Panel {
 
 
     private BorderLayout layout;
-    private VersionedReference<com.simsilica.lemur.text.DocumentModel> tfmodelref;
+    private VersionedReference<DocumentModel> tfmodelref;
     private VersionedReference<Integer> tfcaratref;
     private int lastcaratline = 0;
 
@@ -65,7 +70,7 @@ public class ReadField extends Panel {
         this(true,new ElementId(ELEMENT_ID),style,text,null,false,null,null,null);
     }
     public ReadField(String text) {
-         this(true,new ElementId(ELEMENT_ID),null,text,null,false,null,null,null);
+        this(true,new ElementId(ELEMENT_ID),null,text,null,false,null,null,null);
     }
 
     // text and headline
@@ -79,20 +84,20 @@ public class ReadField extends Panel {
     // text, optional headline and optional scene
     public ReadField(String style, String text, String headline, boolean showheadline, Spatial scene, AppStateManager manager) {
         this(true,new ElementId(ELEMENT_ID),style,text,headline,showheadline,manager,scene,null);
-     }
-    public ReadField(String text, String headline, boolean showheadline, Spatial scene, AppStateManager manager) {
+    }
+    public ReadField( String text, String headline, boolean showheadline, Spatial scene, AppStateManager manager) {
         this(true,new ElementId(ELEMENT_ID),null,text,headline,showheadline,manager,scene,null);
     }
 
     // text, optional headline and optional picture
     public ReadField(String style, String text, String headline, boolean showheadline, Texture image) {
-          this(true,new ElementId(ELEMENT_ID),style,text,headline,showheadline,null,null,image);
+        this(true,new ElementId(ELEMENT_ID),style,text,headline,showheadline,null,null,image);
     }
     public ReadField(String text, String headline, boolean showheadline, Texture image) {
         this(true,new ElementId(ELEMENT_ID),null,text,headline,showheadline,null,null,image);
     }
 
-    protected ReadField(boolean applyStyles, ElementId elementId, String style, String text, String headlinetxt, boolean showhead, AppStateManager stateManager, Spatial scene, Texture txtu) {
+    protected ReadField(boolean applyStyles, ElementId elementId, String style,String text, String headlinetxt, boolean showhead, AppStateManager stateManager, Spatial scene,  Texture txtu) {
         // we dont apply styles for the super type but then we do it at the end
         super(false, elementId, style);
 
@@ -101,13 +106,13 @@ public class ReadField extends Panel {
         getControl(GuiControl.class).setLayout(layout);
         this.showheadline = showhead;
 
-    // We create 2 containers for headline + image or scene and text
+        // We create 2 containers for headline + image or scene and text
         headlineContainer = new Container(new SpringGridLayout(Axis.Y,Axis.X,FillMode.None,FillMode.None),new ElementId(Headline_ID).child(elementId).child(CONTAINER_ID), style);
         tfContainer = new Container(elementId.child(CONTAINER_ID), style);
         layout.addChild(headlineContainer,BorderLayout.Position.North);
         layout.addChild(tfContainer, BorderLayout.Position.Center);
 
-    // add textfield and selectors
+        // add textfield and selectors
         textField = new com.simsilica.lemur.TextField(text, elementId.child(TextField_ID), style);
         textField.adjustText(0,true,true);
         tfmodelref = textField.getDocumentModel().createReference();
@@ -115,6 +120,7 @@ public class ReadField extends Panel {
         tfContainer.addChild(textField);
         selector = new Textfieldselectors();
         MouseEventControl.addListenersToSpatial(textField, selector);
+        textField.setreadonly(true); // This can be set via style but to be sure we set it here again
 
         // prepare slider and reference
         baseIndex = new DefaultRangedValueModel();
@@ -137,14 +143,14 @@ public class ReadField extends Panel {
         elementwidth = tfContainer.getPreferredSize().getX();
 
 
-          // We prepare a ViewPortPanel or a picture to show
+        // We prepare a ViewPortPanel or a picture to show
         if (!(stateManager == null)) {
-          ElementId subid = new ElementId(ViewportPanel.ELEMENT_ID).child(ELEMENT_ID).child(Container.ELEMENT_ID);
-          VPscenebox = new ViewportPanel(stateManager, subid, style);
-          setViewPortPanelScene(scene);
-          showimage = true;
-          elementpicturewidth = 0.25f*elementwidth;
-          elementpictureheight=0.25f*elementheight;
+            ElementId subid = new ElementId(ViewportPanel.ELEMENT_ID).child(ELEMENT_ID).child(Container.ELEMENT_ID);
+            VPscenebox = new ViewportPanel(stateManager, subid, style);
+            setViewPortPanelScene(scene);
+            showimage = true;
+            elementpicturewidth = 0.25f*elementwidth;
+            elementpictureheight=0.25f*elementheight;
         }
 
         if (!(txtu == null)) {
@@ -166,7 +172,7 @@ public class ReadField extends Panel {
         showHeadline();
         showPicture();
         updateallsizes();
-      //  textField.getDocumentModel().updateCarat(false, 0, true); // carat +0, um caratupdate -> resetcursorposition -> autoadjust textfield
+        //  textField.getDocumentModel().updateCarat(false, 0, true); // carat +0, um caratupdate -> resetcursorposition -> autoadjust textfield
         textField.getDocumentModel().end(false);
         textField.getDocumentModel().home(false);
     }
@@ -176,21 +182,21 @@ public class ReadField extends Panel {
     private void checkslider() {
 
         if (textField.getDocumentModel().getLineCount() < textField.getPreferredLineCount()) {
-            // kein slider notwendig
+            // no slider needed
             if (!(slidervert.getParent() == null)) {
                 layout.removeChild(slidervert);
                 updateallsizes();
-          //      textField.adjustText(0,true,false);
+                //      textField.adjustText(0,true,false);
             }
         } else {
-            // slider notwendig
-            // ermittle und setze neu Sliderwerte
+            // slider needed
+            // calculate and set new slider value
             updateslidermax();
             updateslidervalue();
             //    baseIndex.setValue(0);
-            if (slidervert.getParent() == null) { // add slider, wenn notwendig
+            if (slidervert.getParent() == null) { // add slider, if necessary
                 layout.addChild(slidervert, BorderLayout.Position.East);
-               // textField.getDocumentModel().updateCarat(true, 1, true);
+                // textField.getDocumentModel().updateCarat(true, 1, true);
                 updateallsizes();
                 updateneed = true; // triggers   textField.adjustText(0,true,true); + sizeadjust via updateloop if needed
             }
@@ -225,7 +231,7 @@ public class ReadField extends Panel {
         styles.getSelector(meid, null).set("setHeadlineHAlignment", HAlignment.Center, false);
         styles.getSelector(meid, null).set("setReadfieldimagewidth", 0f, false);
         styles.getSelector(meid, null).set("setReadfieldimageheight", 0f, false);
- }
+    }
 
     private void makeContainer(){
         // we delete all containers
@@ -268,8 +274,8 @@ public class ReadField extends Panel {
 
     @StyleAttribute(value = "setReadfieldPreferredWidth", lookupDefault = false)
     public void setReadfieldPreferredWidth(float width) {
-       elementwidth = Math.max(0, width);
-       updateallsizes();
+        elementwidth = Math.max(0, width);
+        updateallsizes();
     }
 
     @StyleAttribute(value = "setReadfieldimagewidth", lookupDefault = false)
@@ -306,21 +312,21 @@ public class ReadField extends Panel {
     public void setRFconstantpicturesize(float maxsizeofimage) {
         if (!(picture == null)) {
             QuadBackgroundComponent QB = (QuadBackgroundComponent) picture.getBackground();
-           Texture txt = QB.getTexture();
-           float breite =  txt.getImage().getWidth();
-           float hoehe =  txt.getImage().getHeight();
+            Texture txt = QB.getTexture();
+            float breite =  txt.getImage().getWidth();
+            float hoehe =  txt.getImage().getHeight();
 
-           if (hoehe > breite) {
-               maxsizeofimage = Math.min(maxsizeofimage,elementheight);
-               elementpictureheight = maxsizeofimage;
-               elementpicturewidth = maxsizeofimage/(hoehe/breite);
-           } else {
-               maxsizeofimage = Math.min(maxsizeofimage,elementwidth);
-               elementpicturewidth = maxsizeofimage;
-               elementpictureheight = maxsizeofimage/(breite/hoehe);
-           }
-           picture.setPreferredSize(new Vector3f(elementpicturewidth,elementpictureheight,1f));
-           updateallsizes();
+            if (hoehe > breite) {
+                maxsizeofimage = Math.min(maxsizeofimage,elementheight);
+                elementpictureheight = maxsizeofimage;
+                elementpicturewidth = maxsizeofimage/(hoehe/breite);
+            } else {
+                maxsizeofimage = Math.min(maxsizeofimage,elementwidth);
+                elementpicturewidth = maxsizeofimage;
+                elementpictureheight = maxsizeofimage/(breite/hoehe);
+            }
+            picture.setPreferredSize(new Vector3f(elementpicturewidth,elementpictureheight,1f));
+            updateallsizes();
 
         }
 
@@ -368,13 +374,13 @@ public class ReadField extends Panel {
         if ((showheadline) && (headline.getParent() == null)) {
             headlineContainer.addChild(headline, 0,0);
             updateneed = true;
-         //   setPreferredHeight(elementheight);
+            //   setPreferredHeight(elementheight);
             return;
         }
         if (!(showheadline) && (!(headline.getParent() == null))) {
             headlineContainer.removeChild(headline);
             updateneed = true;
-       //     setPreferredHeight(elementheight);
+            //     setPreferredHeight(elementheight);
         }
 
     }
@@ -401,7 +407,7 @@ public class ReadField extends Panel {
                 if (!(X == null))   headlineContainer.removeChild(X);
                 updateneed = true;
             }
-        return;
+            return;
         }
         if (!(picture==null)) { // picture
             if ((showimage) && (picture.getParent() == null)) { // not attached picture
@@ -451,14 +457,14 @@ public class ReadField extends Panel {
         }
 
         if ((elementheight-headlineheight-middleheight) <= lineheight) {
-           middleheight = Math.max(elementheight -headlineheight-lineheight,0); // make scene smaller
-           if (((elementheight-headlineheight-middleheight) <= lineheight) && (showheadline)) {
-               showheadline =false; // disable headline
-               headlineheight =0;
-               showHeadline();
-           }
-           if (elementheight <lineheight) elementheight = lineheight; // change elementheight
-       }
+            middleheight = Math.max(elementheight -headlineheight-lineheight,0); // make scene smaller
+            if (((elementheight-headlineheight-middleheight) <= lineheight) && (showheadline)) {
+                showheadline =false; // disable headline
+                headlineheight =0;
+                showHeadline();
+            }
+            if (elementheight <lineheight) elementheight = lineheight; // change elementheight
+        }
         // get number of lines
         float newnumberoflines = (elementheight-headlineheight-middleheight)/lineheight;
         newnumberoflines = (float) Math.floor(newnumberoflines);
@@ -524,7 +530,7 @@ public class ReadField extends Panel {
 
     @Override
     public void updateLogicalState(float tpf) {
-   //     System.out.println(tfContainer.getSize());
+        //     System.out.println(tfContainer.getSize());
         super.updateLogicalState(tpf);
 
         if (updateneed) {
@@ -554,7 +560,7 @@ public class ReadField extends Panel {
             Integer it = textField.getDocumentModel().findCaratValue(positionen);
             if (!(it == null)) textField.getDocumentModel().updateCarat(true, it, true); // Setze Carat an die neue Position
             textField.getDocumentModel().findPosition(textField.getDocumentModel().getCarat(), positionen);
-             GuiGlobals.getInstance().getFocusManagerState().setFocus(textField);
+            GuiGlobals.getInstance().getFocusManagerState().setFocus(textField);
             // ermittle das neue Y-Offset und setze es
             textField.getDocumentModel().setOffset_Y(textField.getDocumentModel().getCaratLine() - textField.getPreferredLineCount()+1);
         }
