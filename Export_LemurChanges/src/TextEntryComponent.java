@@ -1517,10 +1517,10 @@ public class TextEntryComponent extends AbstractGuiComponent
         boolean last =false;
 
         float xmin = bitmapText.getWorldTranslation().getX();
-        float xmax = textBox.width+xmin;
+        float xmax = textBox.width * bitmapText.getWorldScale().x+xmin;
 
         float ymin = bitmapText.getWorldTranslation().getY();
-        float ymax = ymin- textBox.height;
+        float ymax = ymin- textBox.height * bitmapText.getWorldScale().y;
 
         // the coordinates are not inside the textbox
         if ((!(coordinatesXY[0] >=xmin && coordinatesXY[0] <= xmax)) || (!(coordinatesXY[1] >=ymax && coordinatesXY[1] <= ymin)))
