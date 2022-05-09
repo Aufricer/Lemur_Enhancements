@@ -2,7 +2,9 @@ import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.event.DefaultMouseListener;
+import com.simsilica.lemur.text.DocumentModel;
 
         /*
         A mouselistener that once attached to a Textfield will allow the user to select and deselect text
@@ -16,15 +18,22 @@ public class Textfieldselectors extends DefaultMouseListener {
     private int before =0;
     private int nextstep = 0;
     private long zeit = System.currentTimeMillis();
+    private boolean looseFocus = true;
+
+    public Textfieldselectors() {
+    }
+
+    public Textfieldselectors(boolean dontlooseFocus) {
+        this.looseFocus = !dontlooseFocus; // make loosing the focus on Mouseexit optional
+    }
 
 
     @Override
     public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
 
-
-        if (!(target instanceof com.simsilica.lemur.TextField)) return;
-        com.simsilica.lemur.TextField textField = (com.simsilica.lemur.TextField) target;
-        com.simsilica.lemur.text.DocumentModel document = textField.getDocumentModel();
+        if (!(target instanceof TextField)) return;
+        TextField textField = (TextField) target;
+        DocumentModel document = textField.getDocumentModel();
 
         if (event.isPressed()) {
 
@@ -69,9 +78,9 @@ public class Textfieldselectors extends DefaultMouseListener {
 
     @Override
     public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
-        if (!(target instanceof com.simsilica.lemur.TextField)) return;
-        com.simsilica.lemur.TextField textField = (com.simsilica.lemur.TextField) target;
-        com.simsilica.lemur.text.DocumentModel document = textField.getDocumentModel();
+        if (!(target instanceof TextField)) return;
+        TextField textField = (TextField) target;
+        DocumentModel document = textField.getDocumentModel();
         // move the textfield by mousewheel and get the new position if right click is used
         if (!(event.getDeltaWheel() ==0)) {
             if (event.getDeltaWheel() >0) {
@@ -108,6 +117,6 @@ public class Textfieldselectors extends DefaultMouseListener {
     public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
         press = false;
         press2 = false;
-        GuiGlobals.getInstance().getFocusManagerState().setFocus(null);
+        if (looseFocus)   GuiGlobals.getInstance().getFocusManagerState().setFocus(null);
     }
 }
