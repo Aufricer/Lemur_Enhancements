@@ -1,10 +1,12 @@
+package Own_Stuff;
+
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.lemur.TextField;
+import Lemur_Main_Files.TextField;
 import com.simsilica.lemur.event.DefaultMouseListener;
-import com.simsilica.lemur.text.DocumentModel;
+import Lemur_Main_Files.DocumentModel;
 
         /*
         A mouselistener that once attached to a Textfield will allow the user to select and deselect text

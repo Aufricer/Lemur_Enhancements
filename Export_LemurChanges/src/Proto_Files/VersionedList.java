@@ -34,6 +34,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package Proto_Files;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,7 @@ public class VersionedList<T> extends AbstractList<T>
                               implements VersionedObject<List<T>> {
     private long version = 0;
     private List<T> list;
-    
+
     protected VersionedList(List<T> items, boolean copy ) {
         if( copy ) {
             list = new ArrayList<T>();
@@ -56,16 +58,16 @@ public class VersionedList<T> extends AbstractList<T>
             this.list = items;
         }
     }
-    
+
     public VersionedList() {
         this(new ArrayList<T>(), false);
     }
-    
+
     public VersionedList(List<T> items ) {
         this(items, true);
     }
-    
-    /** 
+
+    /**
      *  Wraps a list in a VersionedList instead of copying it.
      *  This is useful for cases where a VersionedList is required
      *  but strict versioning is not, for example, passing a static list
@@ -105,26 +107,26 @@ public class VersionedList<T> extends AbstractList<T>
     public int size() {
         return list.size();
     }
-    
+
     @Override
     public T set( int i, T val ) {
         T result = list.set(i, val);
         incrementVersion();
         return result;
     }
- 
+
     @Override
     public void add( int i, T val ) {
         list.add(i, val);
         incrementVersion();
     }
- 
+
     @Override
     public T remove( int i ) {
         T result = list.remove(i);
         incrementVersion();
-        return result; 
-    }   
- 
+        return result;
+    }
+
 }
 

@@ -34,11 +34,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package demo;
+package Proto_Files;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -46,9 +45,7 @@ import com.jme3.math.ColorRGBA;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.event.PopupState;
-import com.simsilica.lemur.list.SelectionModel;
 import com.simsilica.lemur.style.ElementId;
-
 
 import java.util.Iterator;
 import java.util.Set;
@@ -102,10 +99,9 @@ public class ListBoxDemoState extends BaseAppState {
         id = new ElementId("list").child("slider").child("left").child("button");
         GuiGlobals.getInstance().getStyles().getSelector(id, "glass").set("text","<");
 
-        // Create a multiline text field with our document model
-        listBox = window.addChild(new ListBox());
+        // Create a multiline ListBox field with our document model
+        listBox = window.addChild(new ListBox(new VersionedList(),"Test"));
         listBox.setVisibleItems(5);
-
 
         for( int i = 0; i < 2; i++ ) {
             listBox.getModel().add("Item " + nextItem);
@@ -280,7 +276,7 @@ public class ListBoxDemoState extends BaseAppState {
     }
 
     protected void getValue_and_reset_Layout() {
-        // get the text of first row and readd it
+        // get the text of first row and read it
         String[] Test = listBox.getlbvalue(0);
         listBox.lbaddvalue(Test);
 

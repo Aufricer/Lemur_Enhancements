@@ -1,3 +1,6 @@
+package Own_Stuff;
+
+import Lemur_Main_Files.TextField;
 import ViewPortPanel.ViewportPanel;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapText;
@@ -20,16 +23,16 @@ import com.simsilica.lemur.core.GuiControl;
 import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.event.*;
 import com.simsilica.lemur.style.*;
-import com.simsilica.lemur.text.DocumentModel;
+import Lemur_Main_Files.DocumentModel;
 
 import java.util.concurrent.Callable;
 
-import static com.simsilica.lemur.component.TextEntryComponent.STRC;
+import static Lemur_Main_Files.TextEntryComponent.STRC;
 
 public class ReadField extends Panel {
 
-    public com.simsilica.lemur.TextField textField;
-    public com.simsilica.lemur.TextField headline;
+    public TextField textField;
+    public TextField headline;
     private Container tfContainer;
     private Container headlineContainer;
     public ViewportPanel VPscenebox;
@@ -124,7 +127,7 @@ public class ReadField extends Panel {
         layout.addChild(tfContainer, BorderLayout.Position.Center);
 
     // add textfield and selectors
-        textField = new com.simsilica.lemur.TextField(text, elementId.child(TextField_ID), style);
+        textField = new TextField(text, elementId.child(TextField_ID), style);
         textField.adjustText(0,true,true);
         tfmodelref = textField.getDocumentModel().createReference();
         tfcaratref = textField.getDocumentModel().createCaratReference();
@@ -143,7 +146,7 @@ public class ReadField extends Panel {
 
         // prepare a headline note it must be set active elsewhere
         ElementId id = new ElementId(Headline_ID).child(elementId.child(TextField_ID));
-        headline = new com.simsilica.lemur.TextField("", id, style);
+        headline = new TextField("", id, style);
         headline.getActionMap().clear();
         headline.setPreferredCursorWidth(0f);
         getHeadline().setText(headlinetxt);
@@ -260,7 +263,7 @@ public class ReadField extends Panel {
         return elementheight;
     }
 
-    public com.simsilica.lemur.TextField getHeadline() {
+    public TextField getHeadline() {
         return headline;
     }
 
@@ -280,7 +283,7 @@ public class ReadField extends Panel {
         return VPscenebox;
     }
 
-    public com.simsilica.lemur.TextField getTextfield() {
+    public TextField getTextfield() {
         return textField;
     }
 

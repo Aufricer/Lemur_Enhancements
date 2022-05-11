@@ -32,27 +32,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur;
-
-import java.util.Map;
+package Lemur_Main_Files;
 
 import com.jme3.font.BitmapFont;
 import com.jme3.math.ColorRGBA;
-
 import com.simsilica.lemur.component.QuadBackgroundComponent;
-import com.simsilica.lemur.component.TextEntryComponent;
 import com.simsilica.lemur.core.GuiControl;
-import com.simsilica.lemur.event.KeyActionListener;
-import com.simsilica.lemur.event.KeyAction;
 import com.simsilica.lemur.event.FocusMouseListener;
+import com.simsilica.lemur.event.KeyAction;
+import com.simsilica.lemur.event.KeyActionListener;
 import com.simsilica.lemur.event.MouseEventControl;
-import com.simsilica.lemur.style.StyleDefaults;
 import com.simsilica.lemur.style.Attributes;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.lemur.style.StyleAttribute;
-import com.simsilica.lemur.style.Styles;
-import com.simsilica.lemur.text.DefaultDocumentModel;
-import com.simsilica.lemur.text.DocumentModel;
+import com.simsilica.lemur.style.StyleDefaults;
+
+import java.util.Map;
 
 
 /**
@@ -96,14 +91,18 @@ public class TextField extends Panel {
         this(model, true, new ElementId(ELEMENT_ID), style);
     }
 
+    public TextField( DocumentModel model, ElementId elementId, String style ) {
+        this(model, true, elementId, style);
+    }
+
     protected TextField( DocumentModel model, boolean applyStyles, ElementId elementId, String style ) {
         super(false, elementId, style);
 
         // Set our layer ordering
         getControl(GuiControl.class).setLayerOrder(LAYER_INSETS,
-                LAYER_BORDER,
-                LAYER_BACKGROUND,
-                LAYER_TEXT);
+                                                   LAYER_BORDER,
+                                                   LAYER_BACKGROUND,
+                                                   LAYER_TEXT);
 
         setDocumentModel(model);
 
@@ -139,6 +138,7 @@ public class TextField extends Panel {
         Textselect = we use the inbuilt select options
         readonly = we delete key input and prevent user changes on textfield except those set via style
          */
+        // this sets the style to the default style
         attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0,0,0,1)), false);
         attrs.set("singleLine", true,false);
         attrs.set("preferredLineCount", 1,false);
@@ -233,6 +233,8 @@ public class TextField extends Panel {
         return text.getPreferredWidth();
     }
 
+    // the number of (visible) lines in a text. Different from maxlinecount. This is just and in most cases
+    // only the visible lines, that determine the size of an textfield
     @StyleAttribute("preferredLineCount")
     public void setPreferredLineCount( int i ) {
         text.setPreferredLineCount(i);
@@ -288,7 +290,8 @@ public class TextField extends Panel {
         }
         text.setScrollMode(smint);
     }
-
+    // maximum numbers of allowed (and visible) lines, could be ignored by scrollmodes but has always a visual effect
+    // if preferredLinecount > maxLinecount the textfield lower part will be empty
     @StyleAttribute("maxLinecount")
     public void setmaxLinecount(int i){
         text.setMaxLinecount(i);

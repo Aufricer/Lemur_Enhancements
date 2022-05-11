@@ -32,18 +32,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur.component;
-
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
+package Lemur_Main_Files;
 
 import com.jme3.font.*;
 import com.jme3.font.BitmapFont.Align;
 import com.jme3.font.BitmapFont.VAlign;
-import com.jme3.font.Rectangle;
 import com.jme3.input.KeyInput;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.RenderState.BlendMode;
@@ -53,7 +46,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Quad;
-
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.VAlignment;
@@ -61,17 +53,18 @@ import com.simsilica.lemur.core.GuiControl;
 import com.simsilica.lemur.core.GuiMaterial;
 import com.simsilica.lemur.core.GuiUpdateListener;
 import com.simsilica.lemur.core.VersionedReference;
-import com.simsilica.lemur.event.KeyAction;
-import com.simsilica.lemur.event.KeyActionListener;
-import com.simsilica.lemur.event.KeyListener;
-import com.simsilica.lemur.event.KeyModifiers;
-import com.simsilica.lemur.event.ModifiedKeyInputEvent;
-import com.simsilica.lemur.focus.FocusTarget;
+import com.simsilica.lemur.event.*;
 import com.simsilica.lemur.focus.FocusNavigationState;
+import com.simsilica.lemur.focus.FocusTarget;
 import com.simsilica.lemur.focus.FocusTraversal.TraversalDirection;
-import com.simsilica.lemur.text.DocumentModel;
-import com.simsilica.lemur.text.DefaultDocumentModel;
-import com.simsilica.lemur.text.DocumentModelFilter;
+import org.slf4j.*;
+
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -83,7 +76,9 @@ import com.simsilica.lemur.text.DocumentModelFilter;
  *  @author    Paul Speed
  */
 public class TextEntryComponent extends AbstractGuiComponent
-        implements FocusTarget, ColoredComponent {
+                                implements FocusTarget, ColoredComponent {
+
+    static Logger log = LoggerFactory.getLogger(TextEntryComponent.class);
 
     public static final KeyActionListener DOC_HOME = new DocumentHome();
     public static final KeyActionListener DOC_END = new DocumentEnd();
@@ -261,7 +256,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         this.ancRef = model.createAnchorReference();
 
 
-        //   cursorQuad = new Quad(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
+     //   cursorQuad = new Quad(bitmapText.getLineHeight()/16f, bitmapText.getLineHeight());
         cursorQuad = new Quad(getCursorWidth(), bitmapText.getLineHeight());
         cursor = new Geometry( "cursor", cursorQuad );
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(new ColorRGBA(1,1,1,0.75f), false);
@@ -362,12 +357,12 @@ public class TextEntryComponent extends AbstractGuiComponent
     public void setSingleLine( boolean f ) {
         this.singleLine = f;
         if( singleLine ) {
-            //        actionMap.put(new KeyAction(KeyInput.KEY_RETURN), FOCUS_NEXT);
-            //        actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), FOCUS_NEXT);
-            //        actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
-            //        actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
-            //        actionMap.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
-            //        actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_RETURN), FOCUS_NEXT);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), FOCUS_NEXT);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_UP), FOCUS_UP);
+    //        actionMap.put(new KeyAction(KeyInput.KEY_DOWN), FOCUS_DOWN);
 
             // scrollMode and maxLines are reset, thus reset offsets as well
             preferredLineCount = 1;
@@ -379,19 +374,19 @@ public class TextEntryComponent extends AbstractGuiComponent
 
         } //else {
 
-        //      actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
-        //      actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
+      //      actionMap.put(new KeyAction(KeyInput.KEY_RETURN), NEW_LINE);
+      //      actionMap.put(new KeyAction(KeyInput.KEY_NUMPADENTER), NEW_LINE);
 
-        // We may choose to do something different with tab someday... but
-        // the user can also just remove the action if they like.
-        //      actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
-        //      actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
+            // We may choose to do something different with tab someday... but
+            // the user can also just remove the action if they like.
+      //      actionMap.put(new KeyAction(KeyInput.KEY_TAB), FOCUS_NEXT);
+      //      actionMap.put(new KeyAction(KeyInput.KEY_TAB, KeyModifiers.SHIFT_DOWN), FOCUS_PREVIOUS);
 
-        //     actionMap.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
-        //     actionMap.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
+       //     actionMap.put(new KeyAction(KeyInput.KEY_UP), PREV_LINE);
+       //     actionMap.put(new KeyAction(KeyInput.KEY_DOWN), NEXT_LINE);
 
 
-        //  }
+      //  }
 
         updatekeybindings();
     }
@@ -422,7 +417,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         // so we need to move it.
         bitmapText.attachChild(cursor);
 
-        // we also need to change the font! as the font parameter is used in getVisibleWidth()
+         // we also need to change the font! as the font parameter is used in getVisibleWidth()
         this.font = font;
 
         resizeCursor();
@@ -518,7 +513,6 @@ public class TextEntryComponent extends AbstractGuiComponent
         return x;
     }
 
-
     public void setPreferredCursorWidth( Float f ) {
         this.preferredCursorWidth = f;
         resizeCursor();
@@ -594,7 +588,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         }
 
 
-        // we check if the cursor is out of visible field
+       // we check if the cursor is out of visible field
         if(x > textBox.width ) {
             if( singleLine || scrollMode == 3 || scrollMode == 1) {
                 // if single line is selected and cursor went back it was possible that the text field was
@@ -1346,7 +1340,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         GuiMaterial mat = GuiGlobals.getInstance().createMaterial(selectorColor, false);
 
         if (textBox == null) {
-            // getDocumentModel().setText(getDocumentModel().getfullText());
+           // getDocumentModel().setText(getDocumentModel().getfullText());
             return;
         }
 
@@ -1536,7 +1530,7 @@ public class TextEntryComponent extends AbstractGuiComponent
          and thus preferedlinecount we just break the function here
           */
         if (maxLinecount <=0) {
-            // ToDo Make a small warning
+           // ToDo Make a small warning
             return null;
         }
 
@@ -1616,7 +1610,7 @@ public class TextEntryComponent extends AbstractGuiComponent
         if (txtselmodeint ==1) { // set or update textselect keybindings
             // activate user keybinding
             txtselectActions.forEach(actionMap::put);
-        } else {
+          } else {
             actionMap.keySet().removeAll(txtselectActions.keySet());
             // user is not able to create or modify anchors via keys but they can be updated via code and are shown
             // as long as textselecmode is not 0

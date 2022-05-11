@@ -34,15 +34,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur.text;
+package Lemur_Main_Files;
+
+import com.simsilica.lemur.core.VersionedObject;
+import com.simsilica.lemur.core.VersionedReference;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import com.simsilica.lemur.TextField;
-import com.simsilica.lemur.core.VersionedObject;
-import com.simsilica.lemur.core.VersionedReference;
 
 
 /**
@@ -330,7 +329,6 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
             column = 0;
             carat.increment();  // A new line is still a "character"
         }
-        // Neu
 
         // If the carat position is > maxlines we need to adjust the offset
         if ((getCaratLine()+1 - offset_Y) > maxlines && !((scrollMode ==0)|| scrollMode ==3)) {
@@ -828,10 +826,10 @@ public class DefaultDocumentModel implements DocumentModel, Cloneable {
         newYoffsetY = Math.max(0,newYoffsetY);
         // no activity if we can not scroll in Y direction
         if (scrollMode ==0 || scrollMode ==3) return;
-        // max available Y Offset
+       // max available Y Offset
         newYoffsetY = Math.min(newYoffsetY, getLineCount()-maxlines);
         newYoffsetY = Math.max(0,newYoffsetY);
-        // finaly we change our offset Y and recalculate and refresh text
+       // finaly we change our offset Y and recalculate and refresh text
         if (!(newYoffsetY == offset_Y)) {
             offset_Y = newYoffsetY;
             version++;

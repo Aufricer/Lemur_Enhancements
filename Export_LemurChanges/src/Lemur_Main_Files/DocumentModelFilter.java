@@ -34,15 +34,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur.text;
+package Lemur_Main_Files;
+
+import com.google.common.base.Function;
+import com.simsilica.lemur.core.VersionedReference;
 
 import java.util.List;
 import java.util.Objects;
-
-import com.google.common.base.Function;
-
-import com.simsilica.lemur.TextField;
-import com.simsilica.lemur.core.VersionedReference;
 
 /**
  *  A convenient base class for DocumentModel filtering that simply passes
@@ -66,11 +64,24 @@ public class DocumentModelFilter implements DocumentModel {
     private long version;
 
     public DocumentModelFilter() {
-        this(new DefaultDocumentModel());
+        this(new com.simsilica.lemur.text.DefaultDocumentModel());
+    }
+
+    public DocumentModelFilter( Function<Character, Character> inputTransform,
+                                Function<String, String> outputTransform ) {
+        this(new com.simsilica.lemur.text.DefaultDocumentModel(), inputTransform, outputTransform);
     }
 
     public DocumentModelFilter( DocumentModel delegate ) {
         this.delegate = delegate;
+    }
+
+    public DocumentModelFilter( DocumentModel delegate,
+                                Function<Character, Character> inputTransform,
+                                Function<String, String> outputTransform ) {
+        this.delegate = delegate;
+        this.inputTransform = inputTransform;
+        this.outputTransform = outputTransform;
     }
 
     /**

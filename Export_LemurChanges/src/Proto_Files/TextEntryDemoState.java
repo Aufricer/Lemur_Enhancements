@@ -34,11 +34,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package demo;
+package Proto_Files;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.math.ColorRGBA;
@@ -48,7 +47,6 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.event.*;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.lemur.text.DocumentModel;
-
 
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
@@ -153,9 +151,9 @@ public class TextEntryDemoState extends BaseAppState {
         //    Lemur\src\main\java\com\simsilica\lemur\event\PopupState.java
         // Es wird also im Hintergrund ein Objekt gesetzt
 
-        getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,null);
+         getState(PopupState.class).showPopup(window,PopupState.ClickMode.Consume, closeCommand,null);
 
-        // wir können window nehmen und nicht window child txtlabel da die anderen elemente alle die clicks abfangen!
+       // wir können window nehmen und nicht window child txtlabel da die anderen elemente alle die clicks abfangen!
         MouseEventControl.addListenersToSpatial(window,
                 new DefaultMouseListener() {
                     private boolean gedrueckt = false;
@@ -202,7 +200,7 @@ public class TextEntryDemoState extends BaseAppState {
         //  textField.scale(0.5f,0.8f,1);
     }
 
-    @Override
+     @Override
     protected void onDisable() {
         window.removeFromParent();
     }
@@ -361,11 +359,12 @@ public class TextEntryDemoState extends BaseAppState {
     }
 
     protected void readonly() {
-        textField.setreadonly(!textField.getReadonlymode());
+         textField.setreadonly(!textField.getReadonlymode());
         textField.setText(exampleTexts());
         textField.adjustText(0,true,false);
 
     }
+
 
     private class txtfieldselector extends DefaultMouseListener {
         private boolean press = false;

@@ -34,9 +34,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur.text;
+package Lemur_Main_Files;
 
-import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.lemur.core.VersionedReference;
 
@@ -61,7 +60,7 @@ public interface DocumentModel extends VersionedObject<DocumentModel> {
     public void setText( String text );
 
     /**
-     *  Returns the current text value contained in this DocumentModel adjusted with its current offset X+Y
+     *  Returns the current text value contained in this DocumentModel adjusted to its current offset X+Y
      *  to get the full text check the getoffsetText() function
      */
     public String getText();

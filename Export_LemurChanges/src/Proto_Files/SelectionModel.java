@@ -34,25 +34,37 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur.list;
+package Proto_Files;
 
-import com.google.common.base.Objects;
+import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.core.VersionedSet;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
  *
  *  @author    Paul Speed
  */
-public class SelectionModel extends VersionedSet<Integer>
-{
+public class SelectionModel extends VersionedSet<Integer> {
+
     public enum SelectionMode { Single, Contiguous, Multi }
 
     private SelectionMode mode = SelectionMode.Single;
     private Integer lastAdd;
 
+    // In single selection, this will contain the current selection.
+    private VersionedHolder<Integer> selected = new VersionedHolder<>(null);
+
     public SelectionModel() {
+    }
+
+    /**
+     *  For single-selections, this will hold the currently selected value.
+     */
+    public VersionedReference<Integer> createSelectionReference() {
+        return selected.createReference();
     }
 
     public void setSelectionMode( SelectionMode mode ) {
@@ -123,7 +135,7 @@ public class SelectionModel extends VersionedSet<Integer>
      *  than 0 then the selection is simply cleared.
      */
     public void setSelection( Integer selection ) {
-        if( Objects.equal(selection, lastAdd) && size() == 1 )
+        if( Objects.equals(selection, lastAdd) && size() == 1 )
             return;
         clear();
         if( selection >= 0 ) {
@@ -134,7 +146,7 @@ public class SelectionModel extends VersionedSet<Integer>
     @Override
     public boolean add( Integer selection ) {
         if (mode == SelectionMode.Single) {
-            if (Objects.equal(selection, lastAdd) && size() == 1)
+            if (Objects.equals(selection, lastAdd) && size() == 1)
                 return false;
             clear();
             lastAdd = selection;
@@ -142,7 +154,7 @@ public class SelectionModel extends VersionedSet<Integer>
         }
 
         if (mode == SelectionMode.Multi) {
-            // delete is done in its own specific SelectorClickListener, no need to search iterate etc. here
+            // delete is done in its own specific ---, no need to search iterate etc. here
             super.add(selection);
             lastAdd = selection;
             return false;

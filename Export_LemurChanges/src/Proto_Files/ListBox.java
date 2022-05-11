@@ -34,24 +34,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.lemur;
-
-import java.util.*;
-
-import org.slf4j.*;
-
-import com.google.common.base.Objects;
+package Proto_Files;
 
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.*;
 import com.jme3.scene.*;
-
 import com.simsilica.lemur.component.*;
 import com.simsilica.lemur.core.*;
 import com.simsilica.lemur.event.*;
 import com.simsilica.lemur.grid.GridModel;
 import com.simsilica.lemur.list.*;
 import com.simsilica.lemur.style.*;
+import org.slf4j.*;
+
+import java.util.*;
 
 
 /**
@@ -76,11 +72,11 @@ public class ListBox<T> extends Panel {
 
     public enum ListAction { Down, Up, Click, Entered, Exited };
 
-
+    private ElementId baseElementId;
     private BorderLayout layout;
     private VersionedList<T> model;
     private VersionedReference<List<T>> modelRef;
-    private CellRenderer<T> cellRenderer;
+    private ValueRenderer<T> cellRenderer;
 
     private SelectionModel selection;
     private VersionedReference<Set<Integer>> selectionRef;
@@ -88,7 +84,7 @@ public class ListBox<T> extends Panel {
     private ClickListener clickListener = new ClickListener();
     private BackgroundListener backgroundListener = new BackgroundListener();
     private CommandMap<ListBox, ListAction> commandMap
-            = new CommandMap<ListBox, ListAction>(this);
+                                    = new CommandMap<ListBox, ListAction>(this);
 
     private GridPanel grid;
     private Slider slider;
@@ -103,11 +99,20 @@ public class ListBox<T> extends Panel {
     private SelectorClickListener selectorlistener = new SelectorClickListener(); // get rid of the selectorpanels via click
     private List<T>[] lbcolumn; // the columns > column 1
     public int availableColumns;
-    private static ElementId meid; // Need that for styling
     private boolean tester = false; // need that as I can not change the order of attributes
     private RangedValueModel baseIndexhor;  // upside down actually
     private Slider sliderhor;
     private VersionedReference<Double> indexRefhor;
+
+    /* Possible for later - get the last  row deselected by user
+    public int getLastuserdeselectedRow() {
+        return lastuserdeselectedRow;
+    }
+
+    private int lastuserdeselectedRow;
+    /*
+
+
     /**
      *  Set to true the mouse wheel will scroll the list if the mouse
      *  is over the list.
@@ -127,39 +132,43 @@ public class ListBox<T> extends Panel {
 
     public ListBox() {
         this(true, new VersionedList<T>(), null,
-                new SelectionModel(),
-                new ElementId(ELEMENT_ID), null);
+             new SelectionModel(),
+             new ElementId(ELEMENT_ID), null);
     }
 
-    public ListBox( VersionedList<T> model ) {
+    public ListBox(VersionedList<T> model ) {
         this(true, model, null,
                 new SelectionModel(), new ElementId(ELEMENT_ID), null);
     }
 
-    public ListBox( VersionedList<T> model, CellRenderer<T> renderer, String style ) {
+    public ListBox(VersionedList<T> model, ValueRenderer<T> renderer, String style ) {
         this(true, model, renderer, new SelectionModel(), new ElementId(ELEMENT_ID), style);
     }
 
-    public ListBox( VersionedList<T> model, String style ) {
+    public ListBox(VersionedList<T> model, String style ) {
         this(true, model, null, new SelectionModel(), new ElementId(ELEMENT_ID), style);
     }
 
-    public ListBox( VersionedList<T> model, ElementId elementId, String style ) {
+    public ListBox(VersionedList<T> model, ElementId elementId, String style ) {
         this(true, model, null, new SelectionModel(), elementId, style);
     }
 
-    public ListBox( VersionedList<T> model, CellRenderer<T> renderer, ElementId elementId, String style ) {
+    public ListBox(VersionedList<T> model, ValueRenderer<T> renderer, ElementId elementId, String style ) {
         this(true, model, renderer, new SelectionModel(), elementId, style);
     }
 
-    protected ListBox( boolean applyStyles, VersionedList<T> model, CellRenderer<T> cellRenderer,
-                       SelectionModel selection,
-                       ElementId elementId, String style ) {
-        super(false, elementId.child(CONTAINER_ID), style);
+    protected ListBox(boolean applyStyles, VersionedList<T> model, ValueRenderer<T> cellRenderer,
+                      SelectionModel selection,
+                      ElementId elementId, String style ) {
+
+        super(false, elementId.child(CONTAINER_ID), style); //Panel of the ListBox
+        this.baseElementId = elementId;
 
         if( cellRenderer == null ) {
             // Create a default one
-            cellRenderer = new DefaultCellRenderer(elementId.child("item"), style);
+            cellRenderer = new DefaultCellRenderer<>(baseElementId.child("item"), style);
+        } else {
+            cellRenderer.configureStyle(baseElementId.child("item"), style);
         }
         this.cellRenderer = cellRenderer;
 
@@ -185,7 +194,6 @@ public class ListBox<T> extends Panel {
 
         if( applyStyles ) {
             Styles styles = GuiGlobals.getInstance().getStyles();
-            meid = this.getElementId();
             styles.applyStyles(this, getElementId(), style);
             tester = true;
         }
@@ -207,17 +215,31 @@ public class ListBox<T> extends Panel {
         setSelectionModel(selection);
     }
 
-    @StyleDefaults(ELEMENT_ID)
+    @StyleDefaults(ELEMENT_ID) // that very name is used to get the attrs
     public static void initializeDefaultStyles( Styles styles, Attributes attrs ) {
+        // OK I dont realy understand how. But in  styles.applyStyles(this, getElementId(), style);
+        // those attributes are set but by setting and applying in  public Attributes getSelector( ElementId id, String style )
+        // I can see container.list as well as panel when calling.
+        // Anyhow here we add currently several more style attributes, that are later called
+        // first is for the selector of our listbox
+        // and then we need to put style settings to container.list to make that clear
+        // I have just introduced customattrs for that
 
         ElementId parent = new ElementId(ELEMENT_ID);
-        //QuadBackgroundComponent quad = new QuadBackgroundComponent(new ColorRGBA(0.5f, 0.5f, 0.5f, 1));
+
         QuadBackgroundComponent quad = new QuadBackgroundComponent(new ColorRGBA(0.8f, 0.9f, 0.1f, 1));
         quad.getMaterial().getMaterial().getAdditionalRenderState().setBlendMode(BlendMode.Exclusion);
+        // we abuse this method and add something to the selector
+        // at this position if style is set null it will be applied to the current style of the ListBox -> all LB will have it
+        // otherwise it would only apply for the set style
         styles.getSelector(parent.child(SELECTOR_ID), null).set("background", quad, false);
-        styles.getSelector(meid, null).set("availableColumns", 1,false);
-        styles.getSelector(meid, null).set("visibleColumns", 1,false);
-
+        // I have honestly no idea why I have to call attributes again
+        // as above style = null -> applied to all Listboxes
+        Attributes customattrs = styles.getSelector(parent.child(CONTAINER_ID),null); //--> same as baseElementID
+        customattrs.set("availableColumns", 1,false);
+        customattrs.set("visibleColumns", 1,false);
+        customattrs.set("scrollOnHover",true,false);
+    //    styles.getSelector(meid, "glass").set("availableColumns", 10,true);
 
     }
 
@@ -298,6 +320,10 @@ public class ListBox<T> extends Panel {
     }
 
     public GridPanel getGridPanel() {
+        // in Listbox the Gridpanel only consist of the visible rows and columns
+        // if from 6 columns only 5 are visible the grid will only have 5 columns
+        // and only those (currently visible) can be modified or the underlying elements (Buttons) can be "extracted"
+        // other cells can not be extracted via getGridPanel().getCell() unless they have be loaded to the current layout (into the grid)
         return grid;
     }
 
@@ -314,6 +340,23 @@ public class ListBox<T> extends Panel {
         return selection;
     }
 
+    /**
+     *  Returns the currently selected list item if there is one and only
+     *  one item selected.  This is a convenience method that interrogates
+     *  the selection model and looks up the current value in the list model.
+     */
+    public T getSelectedItem() {
+        Integer i = selection.getSelection();
+        if( i == null ) {
+            return null;
+        }
+        if( i < 0 || i > getModel().size() ) {
+            return null;
+        }
+        return getModel().get(i);
+    }
+
+    @SuppressWarnings("unchecked") // because Java doesn't like var-arg generics
     public void addCommands( ListAction a, Command<? super ListBox>... commands ) {
         commandMap.addCommands(a, commands);
     }
@@ -322,10 +365,12 @@ public class ListBox<T> extends Panel {
         return commandMap.get(a, false);
     }
 
+    @SuppressWarnings("unchecked") // because Java doesn't like var-arg generics
     public void addClickCommands( Command<? super ListBox>... commands ) {
         commandMap.addCommands(ListAction.Click, commands);
     }
 
+    @SuppressWarnings("unchecked") // because Java doesn't like var-arg generics
     public void removeClickCommands( Command<? super ListBox>... commands ) {
         getClickCommands().removeAll(Arrays.asList(commands));
     }
@@ -357,15 +402,18 @@ public class ListBox<T> extends Panel {
     }
 
     @StyleAttribute(value="cellRenderer", lookupDefault=false)
-    public void setCellRenderer( CellRenderer renderer ) {
+    public void setCellRenderer( ValueRenderer<T> renderer ) {
         if( Objects.equal(this.cellRenderer, renderer) ) {
             return;
         }
         this.cellRenderer = renderer;
+        // We send through the same element ID that was provided to our constructor
+        // because that's what the default cell renderer would have used.
+        cellRenderer.configureStyle(baseElementId.child("item"), getStyle());
         grid.refreshGrid(); // cheating
     }
 
-    public CellRenderer getCellRenderer() {
+    public ValueRenderer<T> getCellRenderer() {
         return cellRenderer;
     }
 
@@ -631,7 +679,10 @@ public class ListBox<T> extends Panel {
                 commandMap.runCommands(ListAction.Down);
                 runEffect(EFFECT_PRESS);
             } else {
-                if( target == capture ) {
+                // Adding a target == ListBox.this check because the capture
+                // seems to be the button but the target on release is the list
+                // for some reason.
+                if( target == capture || target == ListBox.this ) {
                     // Then we are still over the list box and we should run the
                     // click
                     click(event, target, capture);
@@ -794,7 +845,7 @@ public class ListBox<T> extends Panel {
     private class SelectorClickListener extends DefaultCursorListener {
         @Override
         protected void click(CursorButtonEvent event, Spatial target, Spatial capture) {
-            //  lastuserdeselectedRow = target.getUserData("Row"); maybe later, if needed
+          //  lastuserdeselectedRow = target.getUserData("Row"); maybe later, if needed
             selection.remove(target.getUserData("Row"));
         }
 
@@ -802,7 +853,6 @@ public class ListBox<T> extends Panel {
 
 
 // NEU AB 09.2018
-
 
     // @StyleAttribute(value="availableColumns", lookupDefault=false)
     @StyleAttribute(value="availableColumns")
@@ -834,6 +884,7 @@ public class ListBox<T> extends Panel {
 
     protected void adjustothercolumnmodel(){
         if (lbcolumn == null) {
+            if (availableColumns <=0) setavailableColumns(1); // can only happen due to failed styling
             if (availableColumns == 1) return;
             List<T>[] tmp = new List[availableColumns -1];
             for (int i = 0; i< availableColumns -1; i++){

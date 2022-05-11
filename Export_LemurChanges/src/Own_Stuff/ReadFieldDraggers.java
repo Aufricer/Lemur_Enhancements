@@ -1,3 +1,5 @@
+package Own_Stuff;
+
 import Editor.Config_AppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bounding.BoundingBox;
@@ -6,7 +8,7 @@ import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
-import com.simsilica.lemur.TextField;
+import Lemur_Main_Files.TextField;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import org.lwjgl.opengl.Display;
 
