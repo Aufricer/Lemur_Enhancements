@@ -48,6 +48,7 @@ import com.simsilica.lemur.event.PopupState;
 import com.simsilica.lemur.style.ElementId;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -100,13 +101,25 @@ public class ListBoxDemoState extends BaseAppState {
         GuiGlobals.getInstance().getStyles().getSelector(id, "glass").set("text","<");
 
         // Create a multiline ListBox field with our document model
-        listBox = window.addChild(new ListBox(new VersionedList(),"Test"));
+     //   listBox = window.addChild(new ListBox(new VersionedList(),"glass"));
+
+
+     //   getApplication().getAssetManager().registerLocator("C:\\Users\\Win7Pro64\\Desktop\\OSGCode\\Assets", FileLocator.class);
+     //   Attributes attrs = GuiGlobals.getInstance().getStyles().getSelector(new ElementId("exit").child("button"), "glass");
+     //   Texture txt = getApplication().getAssetManager().loadTexture("/Bilder/cancel.png");
+     //   QuadBackgroundComponent bgc1 = new QuadBackgroundComponent(txt);
+     //   attrs.set("background",bgc1);
+
+
+      //  listBox = window.addChild(new ListBox(new VersionedList(),new Picture_Renderer(),"glass"));
+        listBox = window.addChild(new ListBox());
         listBox.setVisibleItems(5);
 
         for( int i = 0; i < 2; i++ ) {
             listBox.getModel().add("Item " + nextItem);
             nextItem++;
         }
+        listBox.getModel().add(new Button("W"));
 
         // Add some actions that will manipulate the document model independently
         // of the text field
@@ -227,7 +240,9 @@ public class ListBoxDemoState extends BaseAppState {
             for (i=0;i<listBox.availableColumns;i++) {
                 if ((i % 2) == 0) repl[i] = "Replaced " + (selection+1) + "-" + (i+1);
             }
-            listBox.lbreplacevalue(selection,repl,true);
+         //   listBox.lbreplacevalue(selection,repl,true);
+            listBox.replace_LB_StringValues(selection,repl,true);
+       //     listBox.replace_LB_value(selection,1,"Test");
         }
     }
 
@@ -278,7 +293,10 @@ public class ListBoxDemoState extends BaseAppState {
     protected void getValue_and_reset_Layout() {
         // get the text of first row and read it
         String[] Test = listBox.getlbvalue(0);
+        List Test2 = listBox.getLBvalues(0);
+        String[] Test3 = listBox.getlbvalueneu(0);
         listBox.lbaddvalue(Test);
+        listBox.add_StringValue(Test3);
 
         if (listBox.getGridPanel().getColumnwidths() ==null) {
             // Change the layout so we can see different column sizes
