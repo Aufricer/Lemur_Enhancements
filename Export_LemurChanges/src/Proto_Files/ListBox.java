@@ -345,7 +345,7 @@ public class ListBox<T> extends Panel {
      *  one item selected.  This is a convenience method that interrogates
      *  the selection model and looks up the current value in the list model.
      */
-    // ToDo Referenzieren, wenn nur 1 Column da ist
+
     public T getSelectedItem() {
         Integer i = selection.getSelection();
         if( i == null ) {
@@ -564,7 +564,7 @@ public class ListBox<T> extends Panel {
                     // what could have been caused by wrong remove
                     if (lbcolumn[col-1].size()> refsize)      lbcolumnadjust();
                     if (lbcolumn[col-1].size()<=row) { // or wrong add
-                        lbcolumn[col-1].add((T) ("" )); // ToDo das darf nicht passieren
+                        lbcolumn[col-1].add((T) ("" ));
                     } else { // we just load the correct value
                         value = lbcolumn[col-1].get(row);
                     }
@@ -882,32 +882,39 @@ public class ListBox<T> extends Panel {
         //  System.out.println("Columns visble: " +grid.getVisibleColumns());
     }
 
+
     // Column Operations
     protected void adjustothercolumnmodel(){
         if (lbcolumn == null) {
+            // if we have only 1 column we use listbox.model
+            // otherwise we create a list that holds a list for each column added
             if (availableColumns <=0) setavailableColumns(1); // can only happen due to failed styling
             if (availableColumns == 1) return;
             List<T>[] tmp = new List[availableColumns -1];
             for (int i = 0; i< availableColumns -1; i++){
                 List<T> list = new ArrayList<T>();
+                for (int n =0;n<model.size();n++) {
+                    list.add((T) ""); // to each of that new lists we add empty value for each row
+                }
                 tmp[i] = list;
             }
             lbcolumn =tmp;
         } else {
             if (availableColumns == 1) {
-                lbcolumn =null;
+                lbcolumn =null; //delets all entries in columns > 1 and the lists holding them
                 return;
             }
             if (lbcolumn.length == availableColumns -1) return;
+            // we make a temporary copy of all LB values and copy those of available columns
             List<T>[] tmp = new List[availableColumns -1];
             int i =0;
             for (List<T> elm: lbcolumn){
                 tmp[i] = elm;
                 i++;
-                if (i == availableColumns-1) break; // now we have fewer columns
+                if (i == availableColumns-1) break; // in that case we now have fewer columns
             }
+            // else we now have extra columns and we already fill the empty rows with empty values
             for (int j = i; j< availableColumns -1; j++){
-                // we have extra columns and we already fill the empty rows (even if other columns are not filled yet)
                 List<T> list = new ArrayList<T>();
                 for (int n =0;n<model.size();n++) {
                     list.add((T) "");
@@ -929,7 +936,6 @@ public class ListBox<T> extends Panel {
         }
     }
 
-
     // Value operations
 
     public void add_StringValue(int row, int column, String stringValue){
@@ -939,87 +945,88 @@ public class ListBox<T> extends Panel {
         if (column>availableColumns) return;
         String[] x = new String[availableColumns];
         x[column] = stringValue;
-        multi_Stringadd(row,prepare_Stringvalue_foradd(x,true));
-
+   //     multi_Stringadd(row,prepare_Stringvalue_foradd(x,true));
+        multi_Valueadd(row,   prepare_Values_foradd((List<T>) Arrays.asList(x),true));
     }
 
     public void add_StringValue(String value_column_01){
         // adds a string to the first column of the listbox
-        add_StringValue(model.size(),1,value_column_01);
-   //     String[] x = new String[1];
-   //     x[0] = value_column_01;
-   //     multi_Stringadd(model.size(), prepare_Stringvalue_foradd(x,false));
+        add_StringValue(model.size(),0,value_column_01);
     }
 
     public void add_StringValue(int row,  String value_column_01) {
-        // adds a string to the first column at the given row
-        add_StringValue(row,1,value_column_01);
-      //  if (row > model.size()) return;
-      //  String[] x = new String[1];
-      //  x[0] = value_column_01;
-      //  multi_Stringadd(row, prepare_Stringvalue_foradd(x,false));
+        // add or insert a string to the first column at the given row
+        add_StringValue(row,0,value_column_01);
     }
 
     public void add_StringValue(String[] values) {
         //adds the given Values in String as new Line. Non present columns will be replaced by ""
         add_StringValue(getModel().size(),values);
-    //    int pos = getModel().size();
-    //    multi_Stringadd(pos, prepare_Stringvalue_foradd(values,true));
     }
 
     public void add_StringValue(int row,String[] values) {
         if (row > model.size()) return;
-        multi_Stringadd(row, prepare_Stringvalue_foradd(values,true)); // insert at position
+        multi_Valueadd(row,   prepare_Values_foradd((List<T>) Arrays.asList(values),true));
+   //     multi_Stringadd(row, prepare_Stringvalue_foradd(values,true)); // insert at position
     }
 
-    public void add_StringValue(int row, String[] values, boolean replace_nulls) {
+    public void add_StringValue(Integer row_or_null_for_endoflist, String[] values, boolean replace_nulls) {
         // adds String values to a given position (or at the end) and optional replaces null values with ""
         int pos = getModel().size();
-        if (!(row == Integer.parseInt(null)))  pos = row;
+        if (!(row_or_null_for_endoflist == null)) pos = row_or_null_for_endoflist;
         if (pos > model.size()) return;
-        multi_Stringadd(pos, prepare_Stringvalue_foradd(values,replace_nulls));
+        multi_Valueadd(pos,prepare_Values_foradd((List<T>) Arrays.asList(values),replace_nulls));
     }
 
-    private String[] prepare_Stringvalue_foradd(String[] stringfield, boolean replacenull) {
-        // returns a String[] with the number of avasilable columns
-        // null values might be replaced with ""
-        String[] tmpvalue = new String[availableColumns];
-        if (stringfield == null) return tmpvalue;
-        if (stringfield.length != tmpvalue.length) {
-            int i;
-            for (i=0; i<stringfield.length;i++) {
-                if (i == availableColumns) break;
-                if ((replacenull) && (stringfield[i] == null)) {
-                    tmpvalue[i] = "";
-                } else {
-                    tmpvalue[i] = stringfield[i]; //maybe null is set
-                }
-            }
-            for (int z = i; z<=availableColumns-1;z++) {
-                tmpvalue[z] ="";
-            }
-        } else {
-            if (replacenull) {
-                for (int i =0;i<stringfield.length;i++){
-                    if (stringfield[i] == null) stringfield[i] ="";
-                }
-            }
-            return  stringfield;
-        }
-        return tmpvalue;
+    public void add_Values(int row, int column, T value){
+        //adds a value at the given position (row and column) the other columns in row will be filled with ""
+        add_StringValue( row,  column,  "replace_me");
+        replace_LB_value(row,column,value);
     }
 
-    private void multi_Stringadd(int row, String[] value) {
-        getModel().add(row, (T) value[0]); // first column is always the default Listbox model
-        for (int i = 1; i < availableColumns;i++) {
-            if (i >= value.length) break;
-            int z = row - lbcolumn[i-1].size();
-            for (int x = 1; x <= z;x++) {
-                lbcolumn[i-1].add(lbcolumn[i-1].size(), (T) ""); // add missing rows
+    public void add_Values(Integer row_or_null_for_endoflist, List<T> values){
+        //adds a row of Values to the given (or last) line of the Listbox
+        int pos = getModel().size();
+        if (!(row_or_null_for_endoflist == null)) pos = row_or_null_for_endoflist;
+        multi_Valueadd(pos, prepare_Values_foradd(values,true));
+    }
+
+    private List<T> prepare_Values_foradd(List<T> unpreparedValues, boolean replacenull) {
+        List<T> preparedValues = new ArrayList<T>();
+        if (unpreparedValues == null) return preparedValues;
+        for (int i = 0; i<availableColumns; i++) {
+            if (i < unpreparedValues.size()) {
+                preparedValues.add(unpreparedValues.get(i)); // we get what we have from the original list
+            } else {
+                preparedValues.add(null); // we fill up until we have all columns filled
             }
-            lbcolumn[i-1].add(Math.min(lbcolumn[i-1].size(),row), (T) value[i]);
+        }
+        if (replacenull) {
+            int u = 0;
+            for (T listmember: preparedValues) {
+                if (listmember == null) {
+                    preparedValues.set(u,(T) ""); // replace all null
+                }
+                u++;
+            }
+        }
+        return preparedValues;
+    }
+
+    private void multi_Valueadd(int row, List<T> value) {
+        getModel().add(row, (T) value.get(0)); // first column always goes to the default model
+        for (int i = 1; i<availableColumns;i++) {
+            if (i>= value.size()) break;
+            // not sure why it was here and it should not happen but in case one column has fewer rows we just add them
+            int z = model.size() - lbcolumn[i-1].size();
+            for (int x = 1; x<z;x++) {
+                lbcolumn[i-1].add((T) "");
+            }
+            // now each column has the correct lenght and we add our value
+            lbcolumn[i-1].add(Math.min(lbcolumn[i-1].size(),row), (T) value.get(i));
         }
     }
+
 
     // Replace operations
 
@@ -1035,6 +1042,8 @@ public class ListBox<T> extends Panel {
      */
 
     public void replace_LB_value(int row, int col, T cellvalue) {
+        // replaces the given cells value of listbox (if available but not necessary visible at time)
+        // with the given value -> e.g. a Button or a Text
         if (row > model.size()-1) return;
         if (col == 0) {
             model.set(row,(T) cellvalue);
@@ -1048,12 +1057,14 @@ public class ListBox<T> extends Panel {
                 }
             }
             lbcolumn[col-1].set(row,(T) cellvalue);
-            model.incrementVersion();
-
+            model.incrementVersion(); // updates grid in next update loop
         }
     }
 
     public void replace_LB_StringValues(int row, String[] value,boolean dontreplace_nulls) {
+        // convenient method to replace a whole row in listbox with given Strings
+        // starts at column 0 and replaces until all columns in line are replaced or String ends
+        // if value contains "null" and those are not replaced, that value will not be replaced in the end
         int i =0;
         for (String x:value) {
             if (((x == null) && !(dontreplace_nulls)) || (!(x==null)) ) replace_LB_value(row,i,(T) x);
@@ -1063,15 +1074,22 @@ public class ListBox<T> extends Panel {
     }
 
     public void remove_Row(int row) {
+        // WARNING                                 WARNING
+        // having multiple rows
+
+
+        // clean way to remove rows, if model.remove() is called the remaining columns will be
+        // deleted during update loop, once
         if (row > getModel().size()) return;
         getModel().remove(row);
         if (lbcolumn == null) return;
         for (List<T> elm: lbcolumn){
-            elm.remove(row);
+            if (elm.size()>=1)   elm.remove(row); // if there is no value added yet
         }
     }
 
     public List<T> getLBvalues(int row) {
+        // returns all values in a ListBox row in its raw form
         List<T> tmp =  new ArrayList<T>();
         if (row>model.size()-1) return null;
         tmp.add(0, (T) getModel().get(row));
@@ -1087,13 +1105,32 @@ public class ListBox<T> extends Panel {
         return tmp;
     }
 
-    public String[] getlbvalueneu(int row) {
+    public String[] getlbvalue(int row) {
+        // returns all values from a listbox row after converting to String
         List<T> lBvalues = getLBvalues(row);
         String[] tmp = new String[availableColumns];
         for (int i=0;i<lBvalues.size();i++){
-          tmp[i] = lBvalues.get(i).toString();
+            tmp[i] = lBvalues.get(i).toString();
         }
-             return tmp;
+        return tmp;
+
+        // ToDo 05/2022 -> delete if it works
+       /*
+        String[] tmp = new String[availableColumns];
+        if (row>model.size()-1) return null;
+        tmp[0] = (String) getModel().get(row);
+        int i =1;
+        if (!(lbcolumn == null)) {
+            for (List<T> elm: lbcolumn) {
+                if (elm.size()>row) { // empty rows will be ignored
+                    tmp[i] = (String) elm.get(row);
+                }
+                i++;
+            }
+        }
+        return tmp;
+        /*
+        */
     }
 
 
@@ -1128,7 +1165,7 @@ public class ListBox<T> extends Panel {
         if (row > model.size()) return;
         multi_Stringadd(row, prepare_Stringvalue_foradd(values,true)); // insert at position
     }
-   @Deprecated
+    @Deprecated
     public void lbbaddvalue(int row, String[] values, boolean insertnullvalues) {
         if (row > model.size()) return;
         multi_Stringadd(row, prepare_Stringvalue_foradd(values,!insertnullvalues)); // insert at position
@@ -1174,25 +1211,48 @@ public class ListBox<T> extends Panel {
             elm.remove(row);
         }
     }
-
-
-
-
-    public String[] getlbvalue(int row) {
-        String[] tmp = new String[availableColumns];
-        if (row>model.size()-1) return null;
-        tmp[0] = (String) getModel().get(row);
-        int i =1;
-        if (!(lbcolumn == null)) {
-            for (List<T> elm: lbcolumn) {
-                if (elm.size()>row) { // empty rows will be ignored
-                    tmp[i] = (String) elm.get(row);
+    @Deprecated
+    private String[] prepare_Stringvalue_foradd(String[] stringfield, boolean replacenull) {
+        // returns a String[] with the number of avasilable columns
+        // null values might be replaced with ""
+        String[] tmpvalue = new String[availableColumns];
+        if (stringfield == null) return tmpvalue;
+        if (stringfield.length != tmpvalue.length) {
+            int i;
+            for (i=0; i<stringfield.length;i++) {
+                if (i == availableColumns) break;
+                if ((replacenull) && (stringfield[i] == null)) {
+                    tmpvalue[i] = "";
+                } else {
+                    tmpvalue[i] = stringfield[i]; //maybe null is set
                 }
-                i++;
             }
+            for (int z = i; z<=availableColumns-1;z++) {
+                tmpvalue[z] ="";
+            }
+        } else {
+            if (replacenull) {
+                for (int i =0;i<stringfield.length;i++){
+                    if (stringfield[i] == null) stringfield[i] ="";
+                }
+            }
+            return  stringfield;
         }
-        return tmp;
+        return tmpvalue;
     }
+    @Deprecated
+    private void multi_Stringadd(int row, String[] value) {
+        getModel().add(row, (T) value[0]); // first column is always the default Listbox model
+        for (int i = 1; i < availableColumns;i++) {
+            if (i >= value.length) break;
+            int z = row - lbcolumn[i-1].size();
+            for (int x = 1; x <= z;x++) {
+                lbcolumn[i-1].add(lbcolumn[i-1].size(), (T) ""); // add missing rows
+            }
+            lbcolumn[i-1].add(Math.min(lbcolumn[i-1].size(),row), (T) value[i]);
+        }
+    }
+
 
     private void sliderhorsetup(){
         if (availableColumns > getGridPanel().getVisibleColumns()) {
