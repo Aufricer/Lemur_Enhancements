@@ -228,15 +228,16 @@ public class GridPanel extends Panel {
                     }
 
                     if (columnHalignement != null) {
-                        if (columnHalignement.length>c) {
-                            if (columnHalignement[c] !=null)  {
-                                ((Button) child).setTextHAlignment(columnHalignement[c]);
-                            } else ((Button) child).setTextHAlignment(HAlignment.Left);
-                        } else ((Button) child).setTextHAlignment(HAlignment.Left);
+                        if ((columnHalignement.length>c) &&  (columnHalignement[c] !=null)) {
+                            // we only set the alignement for "text" elements attached to the listbox
+                            // for others e.g. progressbar etc. we should call the element and do the changes there
+                            if (child instanceof Button) ((Button) child).setTextHAlignment(columnHalignement[c]);
+                            if (child instanceof Label) ((Label) child).setTextHAlignment(columnHalignement[c]);
+                            if (child instanceof TextField) ((TextField) child).setTextHAlignment(columnHalignement[c]);
+                       //     if (columnHalignement[c] !=null)  {
+                     //       } else ((Button) child).setTextHAlignment(HAlignment.Left);
+                        } else if (child instanceof Button) ((Button) child).setTextHAlignment(HAlignment.Left);
                     }
-
-
-
 
                     if( child != existing ) {
                         // Make sure new children pick up the alpha of the container

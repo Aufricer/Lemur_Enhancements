@@ -132,8 +132,8 @@ public class ListBox<T> extends Panel {
 
     public ListBox() {
         this(true, new VersionedList<T>(), null,
-             new SelectionModel(),
-             new ElementId(ELEMENT_ID), null);
+                new SelectionModel(),
+                new ElementId(ELEMENT_ID), null);
     }
 
     public ListBox(VersionedList<T> model ) {
@@ -249,6 +249,16 @@ public class ListBox<T> extends Panel {
 
         if( modelRef.update() ) {
             resetModelRange();
+            boolean tmpcheck = false;
+            if ((availableColumns>1) && (grid.getVisibleColumns()<availableColumns) && !(lbcolumn == null)) {
+                for (int i = grid.getVisibleColumns()-1; i<lbcolumn.length;i++){
+                     while (lbcolumn[i].size() < model.size() ) {
+                         lbcolumn[i].add((T) "");
+                     }
+                     if (model.size() > lbcolumn[i].size()) tmpcheck = true;
+                }
+                if (tmpcheck) lbcolumnadjust();
+            }
         }
 
         boolean indexUpdate = indexRef.update();
@@ -587,6 +597,11 @@ public class ListBox<T> extends Panel {
         return cell;
     }
 
+
+    private void check_columns(int columntocheck){
+
+    }
+
     /**
      *  Used when the list model is swapped out.
      */
@@ -853,7 +868,27 @@ public class ListBox<T> extends Panel {
     }
 
 
-// NEU AB 09.2018
+
+        /* Notes from 05/2022
+        In 2018 I did not realize the potential @pspeed put into Listbox by  using VersionedList<T> as model
+        In theory <T> could be a Map<row, column, value> or similiar. -> a multi column list holding any value
+        we want. With an custom CellRenderer we could thus probably reach the same as with this modification of Listbox
+        Another option would be to modify or extent the VersionedList in a similar way. That would solve the issues we are
+        encountering with the choosen approach but would need another change to the constructor in Listbox
+
+        However: WARNING WARNING WARNING WARNING WARNING
+        The current modification of Listbox - tried to not change the original Listbox to much
+        Whenever multicolumn is in use we internally create a list that's holding lists with the value of listbox
+        One list for each column and each of that lists hold all rows of that column (<T> values)
+        In that case whenever the original operations on model (model.add, model.remove) etc. are used they only apply
+        to the first column. From 2018 on there was some checks that try to ensure that all columns have the same number of rows.
+        There is no way for the other columns to know the position of change in the first column, if the model oprions are used
+        so ToDo using the model.* functionality in a multicolumn listbox will lead to disorder in the listbox rows
+        always use the multi column operations (add_StringValue,  add_Values, replace_LB_value etc.) that ensure a correct behaviour
+        The choosen construct makes it necessary to call model.incrementVersion(); in some cases so the grid,.refresh
+        functionality is used that (also) ensures that all columns are synchronized
+     */
+
 
     // @StyleAttribute(value="availableColumns", lookupDefault=false)
     @StyleAttribute(value="availableColumns")
@@ -882,8 +917,8 @@ public class ListBox<T> extends Panel {
         //  System.out.println("Columns visble: " +grid.getVisibleColumns());
     }
 
-
     // Column Operations
+
     protected void adjustothercolumnmodel(){
         if (lbcolumn == null) {
             // if we have only 1 column we use listbox.model
@@ -1017,29 +1052,19 @@ public class ListBox<T> extends Panel {
         getModel().add(row, (T) value.get(0)); // first column always goes to the default model
         for (int i = 1; i<availableColumns;i++) {
             if (i>= value.size()) break;
-            // not sure why it was here and it should not happen but in case one column has fewer rows we just add them
+            // initially just the rows missing until the row to be added had been added
+            // that can happen if model.add is called while some columns are invisible
+            // adding an empty row here might lead to a wrong position of values in the "invisible" column
             int z = model.size() - lbcolumn[i-1].size();
             for (int x = 1; x<z;x++) {
                 lbcolumn[i-1].add((T) "");
             }
-            // now each column has the correct lenght and we add our value
+            // each column has model.size()-1 length now and we can add our value at position
             lbcolumn[i-1].add(Math.min(lbcolumn[i-1].size(),row), (T) value.get(i));
         }
     }
 
-
     // Replace operations
-
-    /* Notes from 05/2022
-        In 2018 I did not realize the potential @pspeed put into Listbox by  using VersionedList<T> as model
-        In theory <T> could be a Map<row, column, value> or similiar. -> a multi column list holding any value
-        we want. With an custom CellRenderer we could thus probably reach the same as with this modification of Listbox
-        The current modification of Listbox - tried to not change the original Listbox to much
-        so whenever we decide to have more then 1 column we internaly hold a List that for each column > 1 holds
-        an ArrayList of <T> values.
-        Due to that construct the model(s version) is never incremented, when something in a column > 1 is changed.
-        Thus we do model.incrementVersion(); to have the update loop with Grid.refresh being called
-     */
 
     public void replace_LB_value(int row, int col, T cellvalue) {
         // replaces the given cells value of listbox (if available but not necessary visible at time)
@@ -1074,17 +1099,11 @@ public class ListBox<T> extends Panel {
     }
 
     public void remove_Row(int row) {
-        // WARNING                                 WARNING
-        // having multiple rows
-
-
-        // clean way to remove rows, if model.remove() is called the remaining columns will be
-        // deleted during update loop, once
         if (row > getModel().size()) return;
         getModel().remove(row);
         if (lbcolumn == null) return;
         for (List<T> elm: lbcolumn){
-            if (elm.size()>=1)   elm.remove(row); // if there is no value added yet
+            if (elm.size()>=1)   elm.remove(row); // remove if there is already a value added
         }
     }
 
@@ -1106,7 +1125,7 @@ public class ListBox<T> extends Panel {
     }
 
     public String[] getlbvalue(int row) {
-        // returns all values from a listbox row after converting to String
+        // returns all values from a listbox row after converting them to String
         List<T> lBvalues = getLBvalues(row);
         String[] tmp = new String[availableColumns];
         for (int i=0;i<lBvalues.size();i++){
@@ -1133,6 +1152,26 @@ public class ListBox<T> extends Panel {
         */
     }
 
+    // Horizontal slider operations
+
+    private void sliderhorsetup(){
+        if (availableColumns > getGridPanel().getVisibleColumns()) {
+            if (sliderhor.getParent() == null) layout.addChild(sliderhor, BorderLayout.Position.South);
+            resetModelhorRange();
+        } else {
+            if (!(sliderhor.getParent() == null))   this.layout.removeChild(sliderhor); // must be detached from layout
+            //     if (!(sliderhor.getParent() == null)) sliderhor.getParent().detachChild(sliderhor);
+            baseIndexhor.setValue(0);
+        }
+    }
+
+    public Slider gethorizontalSlider() {
+        return sliderhor;
+    }
+
+    private void resetModelhorRange() {
+        baseIndexhor.setMaximum(availableColumns-getGridPanel().getVisibleColumns());
+    }
 
 
 
@@ -1251,26 +1290,6 @@ public class ListBox<T> extends Panel {
             }
             lbcolumn[i-1].add(Math.min(lbcolumn[i-1].size(),row), (T) value[i]);
         }
-    }
-
-
-    private void sliderhorsetup(){
-        if (availableColumns > getGridPanel().getVisibleColumns()) {
-            if (sliderhor.getParent() == null) layout.addChild(sliderhor, BorderLayout.Position.South);
-            resetModelhorRange();
-        } else {
-            if (!(sliderhor.getParent() == null))   this.layout.removeChild(sliderhor); // must be detached from layout
-            //     if (!(sliderhor.getParent() == null)) sliderhor.getParent().detachChild(sliderhor);
-            baseIndexhor.setValue(0);
-        }
-    }
-
-    public Slider gethorizontalSlider() {
-        return sliderhor;
-    }
-
-    private void resetModelhorRange() {
-        baseIndexhor.setMaximum(availableColumns-getGridPanel().getVisibleColumns());
     }
 
 }

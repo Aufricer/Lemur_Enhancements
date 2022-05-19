@@ -36,6 +36,7 @@
 
 package Proto_Files;
 
+import com.google.common.base.Function;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
@@ -43,13 +44,13 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.ColorRGBA;
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.event.PopupState;
+import com.simsilica.lemur.list.DefaultCellRenderer;
 import com.simsilica.lemur.style.ElementId;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  *  A demo of the ListBox element.
@@ -67,6 +68,7 @@ public class ListBoxDemoState extends BaseAppState {
     private CloseCommand closeCommand = new CloseCommand();
 
     private ListBox listBox;
+    private ListBox listBox2;
 
     // Just to give added items a unique suffix
     private int nextItem = 1;
@@ -101,25 +103,14 @@ public class ListBoxDemoState extends BaseAppState {
         GuiGlobals.getInstance().getStyles().getSelector(id, "glass").set("text","<");
 
         // Create a multiline ListBox field with our document model
-     //   listBox = window.addChild(new ListBox(new VersionedList(),"glass"));
 
-
-     //   getApplication().getAssetManager().registerLocator("C:\\Users\\Win7Pro64\\Desktop\\OSGCode\\Assets", FileLocator.class);
-     //   Attributes attrs = GuiGlobals.getInstance().getStyles().getSelector(new ElementId("exit").child("button"), "glass");
-     //   Texture txt = getApplication().getAssetManager().loadTexture("/Bilder/cancel.png");
-     //   QuadBackgroundComponent bgc1 = new QuadBackgroundComponent(txt);
-     //   attrs.set("background",bgc1);
-
-
-      //  listBox = window.addChild(new ListBox(new VersionedList(),new Picture_Renderer(),"glass"));
         listBox = window.addChild(new ListBox());
         listBox.setVisibleItems(5);
-
         for( int i = 0; i < 2; i++ ) {
             listBox.getModel().add("Item " + nextItem);
             nextItem++;
         }
-        listBox.getModel().add(new Button("W"));
+
 
         // Add some actions that will manipulate the document model independently
         // of the text field
@@ -136,6 +127,14 @@ public class ListBoxDemoState extends BaseAppState {
         Label l2 = new Label("Multi column options");
         l2.setTextHAlignment(HAlignment.Center);
         window.addChild(l2);
+        Label l3 = new Label("Mixing multi and single options may lead to inconsistent rows");
+        l3.setTextHAlignment(HAlignment.Center);
+        window.addChild(l3);
+
+        Label l4 = new Label("Use key Up and Down in singleselect mode and shift + keys in multiselect");
+        l4.setTextHAlignment(HAlignment.Center);
+        window.addChild(l4);
+
 
         Container button2 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)));
         button2.addChild(new ActionButton(new CallMethodAction(this, "addColumn")));
@@ -159,7 +158,27 @@ public class ListBoxDemoState extends BaseAppState {
                 window, "removeFromParent")));
 
         // Position the window and pop it up
-        window.setLocalTranslation(400, 400, 100);
+        window.setLocalTranslation(200, 400, 100);
+
+ //       Picture_Renderer PR = new Picture_Renderer();
+ //       ListBox LB = new ListBox(new VersionedList(), PR,"glass");
+        listBox2 = window.addChild(new ListBox(new VersionedList(),new Picture_Renderer(),null),1,1);
+        listBox2.setVisibleItems(5);
+        listBox2.getModel().add("LB - TextItem");
+        listBox2.setavailableColumns(3);
+        listBox2.setVisibleColumns(2);
+        String[] value = {"TextItem 2-1","TI 2-2"};
+        listBox2.add_Values(null, Arrays.asList(value));
+
+
+        Label L_vL1 = new Label("Value Listbox + Options");
+        L_vL1.setTextHAlignment(HAlignment.Center);
+        window.addChild(L_vL1,2,1);
+        Container button6 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)),3,1);
+        button6.addChild(new ActionButton(new CallMethodAction(this, "addButton")));
+
+
+
         getState(PopupState.class).showPopup(window, closeCommand);
     }
 
@@ -173,16 +192,16 @@ public class ListBoxDemoState extends BaseAppState {
         listBox.getModel().add("Added item " + (nextItem++));
     }
 
-    protected void addColumn() { // MultiColumnadd
-        //      listBox.lbaddvalue("Test 1");
-        String [] T = new String[ listBox.availableColumns];
+    protected void addColumn() {
+        String [] Texts = new String[ listBox.availableColumns];
         int o = 0;
-        int selection = listBox.getModel().size();
-        for (String elm: T) {
-            T[o] = "AddCol " + (selection+1) +"-" + (o+1);
+        int lbsize = listBox.getModel().size();
+        for (String elm: Texts) {
+            Texts[o] = "AddCol " + (lbsize+1) +"-" + (o+1);
             o++;
         }
-        listBox.lbaddvalue(T);
+        listBox.add_StringValue(Texts);
+      //  listBox.add_Values(null, Arrays.asList(Texts)); Todo Copy for 2nd Listbox
     }
 
 
@@ -215,13 +234,13 @@ public class ListBoxDemoState extends BaseAppState {
                 selection = itset.next()+1;
             }
         }
-        String [] T = new String[ listBox.availableColumns];
+        String [] Texts = new String[ listBox.availableColumns];
         int o = 0;
-        for (String elm: T) {
-            T[o] = "Insert " + (selection+1) +"-" + (o+1);
+        for (String elm: Texts) {
+            Texts[o] = "Insert " + (selection+1) +"-" + (o+1);
             o++;
         }
-        listBox.lbaddvalue(selection, T);
+        listBox.add_StringValue(selection,Texts);
     }
 
     protected void replace() {
@@ -240,13 +259,9 @@ public class ListBoxDemoState extends BaseAppState {
             for (i=0;i<listBox.availableColumns;i++) {
                 if ((i % 2) == 0) repl[i] = "Replaced " + (selection+1) + "-" + (i+1);
             }
-         //   listBox.lbreplacevalue(selection,repl,true);
             listBox.replace_LB_StringValues(selection,repl,true);
-       //     listBox.replace_LB_value(selection,1,"Test");
         }
     }
-
-
 
     protected void removeColumn() {
         int selection;
@@ -258,7 +273,7 @@ public class ListBoxDemoState extends BaseAppState {
             Iterator<Integer> itset = selectionset.iterator();
             while (itset.hasNext()) {
                 selection = itset.next()-i;
-                listBox.lbremovevalue((int)selection);
+                listBox.remove_Row((int)selection);
                 i++;
             }
             listBox.getSelectionModel().clear();
@@ -294,22 +309,14 @@ public class ListBoxDemoState extends BaseAppState {
         // get the text of first row and read it
         String[] Test = listBox.getlbvalue(0);
         List Test2 = listBox.getLBvalues(0);
-        String[] Test3 = listBox.getlbvalueneu(0);
-        listBox.lbaddvalue(Test);
-        listBox.add_StringValue(Test3);
+        listBox.add_StringValue(Test);
+        listBox.add_Values(null,Test2);
 
         if (listBox.getGridPanel().getColumnwidths() ==null) {
             // Change the layout so we can see different column sizes
             listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.None));
             // Set a columnwidth for max 5 columns. Note: width is only set if column exist!
             listBox.getGridPanel().setColumnwidths(new Float[]{120f, 80f, null, 100f, 60f}, true);
-            /*
-            float temp = 0;
-            for (Float f : listBox.getGridPanel().getColumnwidths()) {
-                if (f != null) temp += f;
-            }
-            listBox.setPreferredSize(listBox.getPreferredSize().clone().setX(temp));
-            */
             //  listBox.getGridPanel().setHalignements(new HAlignment[]{HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right});
             listBox.getGridPanel().setHalignements(HAlignment.Center,0);
         } else {
@@ -346,7 +353,6 @@ public class ListBoxDemoState extends BaseAppState {
             getState(MainMenuState.class).closeChild(ListBoxDemoState.this);
         }
     }
-
 
     private boolean shift = false;
     private boolean lastmove;
@@ -428,6 +434,72 @@ public class ListBoxDemoState extends BaseAppState {
 
 
     };
+
+    protected void addButton() {
+        Button extraButton = new Button("");
+        extraButton.setBackground(new QuadBackgroundComponent(ColorRGBA.randomColor()));
+        List vallist = new ArrayList();
+        vallist.add(extraButton);
+        listBox2.add_Values(null, vallist);
+
+        //   getApplication().getAssetManager().registerLocator("C:\\Users\\Win7Pro64\\Desktop\\OSGCode\\Assets", FileLocator.class);
+        //   Attributes attrs = GuiGlobals.getInstance().getStyles().getSelector(new ElementId("exit").child("button"), "glass");
+        //   Texture txt = getApplication().getAssetManager().loadTexture("/Bilder/cancel.png");
+        //   QuadBackgroundComponent bgc1 = new QuadBackgroundComponent(txt);
+        //   attrs.set("background",bgc1);
+    }
+
+
+    private class Picture_Renderer<T> extends DefaultCellRenderer {
+
+        public Picture_Renderer(){
+            super(new ElementId("list").child("item"),null,null);
+        }
+
+        public Picture_Renderer(String style){
+            super(new ElementId("list").child("item"),style,null);
+        }
+
+        public Picture_Renderer(String style, Function< T, String> transform ){
+            super(new ElementId("list").child("item"),style,transform);
+        }
+
+        public Picture_Renderer(ElementId elementId, String style, Function<T, String> transform  ){
+            super(elementId, style, transform);
+        }
+
+
+        @Override
+        public Panel getView(Object value, boolean selected, Panel existing) {
+            if (value == null) {
+                value = "";
+            }
+            System.out.println(value.getClass().getSimpleName());
+            switch (value.getClass().getSimpleName()) {
+                case "Button":
+                    if (value instanceof Button) {
+                        existing = (Button) value; // no matter if the button exist or not
+                    }
+                    break;
+                case "ViewportPanel":
+             //       if (value instanceof ViewportPanel)  existing = (ViewportPanel) value;
+             //       break;
+                case "String" :
+                default:
+                    if( existing == null || (!(existing instanceof Button) )) {
+                        existing = new Button(valueToString(value), getElementId(), getStyle());
+                    } else {
+                        ((Button) existing).setText(valueToString(value));
+                    }
+                    break;
+            }
+            return existing;
+        }
+
+    }
+
+
+
 }
 
 
