@@ -65,8 +65,10 @@ public class GridPanel extends Panel {
     private int column = 0;
     private Float alpha; // for setting to new children
     private Float[] columnwidths = null;
+    private Float[] rowheight = null;
     private boolean widthsupdate = false;
     private HAlignment [] columnHalignement = null;
+
 
 
     public GridPanel(GridModel<Panel> model ) {
@@ -219,25 +221,40 @@ public class GridPanel extends Panel {
                 } else {
                     Panel child = model.getCell(r, c, (Panel)existing);
 
-                    if (columnwidths != null) {
-                        if (columnwidths.length>c) {
-                            if (columnwidths[c] !=null)  {
-                                child.setPreferredSize(child.getPreferredSize().clone().setX(columnwidths[c]));
-                            } else child.setPreferredSize(null);
-                        } else child.setPreferredSize(null);
+                    // we check if there is a size for either rowheight or columnwidth stored
+                    Float ytemp = null;
+                    Float xtemp = null;
+
+                    if (columnwidths !=null) {
+                        if (columnwidths.length > c) {
+                            if (columnwidths[c] != null) xtemp = columnwidths[c];
+                        }
+                    }
+
+                    if (rowheight != null) {
+                        if (rowheight.length > r) {
+                            if (rowheight[r] !=null) ytemp = rowheight[r];
+                        }
+                    }
+                    // and only if, we set the preferred size
+                    if (ytemp !=null || xtemp != null) {
+                        child.setPreferredSize(null);
+                        if (xtemp != null) child.setPreferredSize(child.getPreferredSize().clone().setX(xtemp));
+                        if (ytemp !=null) child.setPreferredSize(child.getPreferredSize().clone().setY(ytemp));
                     }
 
                     if (columnHalignement != null) {
-                        if ((columnHalignement.length>c) &&  (columnHalignement[c] !=null)) {
-                            // we only set the alignement for "text" elements attached to the listbox
-                            // for others e.g. progressbar etc. we should call the element and do the changes there
-                            if (child instanceof Button) ((Button) child).setTextHAlignment(columnHalignement[c]);
-                            if (child instanceof Label) ((Label) child).setTextHAlignment(columnHalignement[c]);
-                            if (child instanceof TextField) ((TextField) child).setTextHAlignment(columnHalignement[c]);
-                       //     if (columnHalignement[c] !=null)  {
-                     //       } else ((Button) child).setTextHAlignment(HAlignment.Left);
+                        if (columnHalignement.length > c) {
+                            if (columnHalignement[c] != null) {
+                                // we only set the alignement for "text" elements attached to the listbox
+                                // for others e.g. progressbar etc. we should call the element and do the changes there
+                                if (child instanceof Button) ((Button) child).setTextHAlignment(columnHalignement[c]);
+                                if (child instanceof Label) ((Label) child).setTextHAlignment(columnHalignement[c]);
+                                if (child instanceof TextField)
+                                    ((TextField) child).setTextHAlignment(columnHalignement[c]);
+                            } else if (child instanceof Button) ((Button) child).setTextHAlignment(HAlignment.Left);
                         } else if (child instanceof Button) ((Button) child).setTextHAlignment(HAlignment.Left);
-                    }
+                    } else if (child instanceof Button) ((Button) child).setTextHAlignment(HAlignment.Left);
 
                     if( child != existing ) {
                         // Make sure new children pick up the alpha of the container
@@ -270,71 +287,144 @@ public class GridPanel extends Panel {
     }
 
 
-    public void setColumnwidths(Float[] widths) {
-        setColumnwidths(widths,false);
+    public Float[] getColumnwidths() {
+        return columnwidths;
     }
 
-    public void setColumnwidths(Float[] widths, boolean overrideempty) {
-        if (checkexistingwidth(widths)) {
-            int i =0;
-            for (Float z:widths) {
-                setColumnwidthschecked(z,i,overrideempty);
-                i++;
-                if (i>=columnwidths.length)   return; // we ignore given columnwidth that is out of bound
-            }
-            if (!overrideempty ) return;
-            for (int u = i; u<columnwidths.length;u++) {
-                setColumnwidthschecked(null,u,overrideempty); // override existing widths
+    public Float[] getRowheights() {
+        return rowheight;
+    }
+
+
+    public void setRowheight(Float rowheight, int rownumber_starting_with_0){
+        // adds or replaces a columnwidth
+        if (rownumber_starting_with_0 < 0) return;
+        int size = rownumber_starting_with_0+1;
+        if (this.rowheight != null) {
+            size = Math.max(size, this.rowheight.length);
+        }
+        preparegridsizes(size,false);
+        setcheckedsize(rowheight,rownumber_starting_with_0,true,true);
+    }
+
+    public void setColumnwidths(Float columnwidth, int columnnumber_starting_with_0) {
+        // adds or replaces a columnwidth
+        if (columnnumber_starting_with_0 <0) return;
+        int size = columnnumber_starting_with_0+1;
+        if (this.columnwidths != null) {
+            size = Math.max(size, this.columnwidths.length);
+        }
+        preparegridsizes(size,true);
+        setcheckedsize(columnwidth,columnnumber_starting_with_0,true,false);
+    }
+
+
+    public void setRowheight (Float[] rowheights_or_null) {
+        // replaces the given rowheights and only keep the number of rows given
+        setRowheight(rowheights_or_null,true);
+    }
+
+    public void setColumnwidths (Float[] columnwidths_or_null) {
+        // replaces the given columnwidths and only keep the number of columns given
+        setColumnwidths(columnwidths_or_null,true);
+    }
+
+
+    public void setRowheight(Float[] rowheights_or_null, boolean write_null_values) {
+        // replaces the given rowheights and only keep the number of rows given
+        // null values either overwrite or will be ignored
+        Integer tmp = null;
+        if (rowheights_or_null != null) tmp = rowheights_or_null.length;
+        if (preparegridsizes(tmp,false)) {
+            for (int i = 0; i <tmp;i++) {
+                setcheckedsize(rowheights_or_null[i],i,write_null_values,true);
             }
         }
     }
 
-    public void setColumnwidths(float width, int column) {
-        checkexistingwidth(new Float[]{0f});
-        if (column < columnwidths.length)  setColumnwidthschecked(width,column,true);
-    }
-
-    private void setColumnwidthschecked(Float width, int column,boolean override) {
-        if (override || (width !=null))  {
-            columnwidths[column] = width;
-            widthsupdate = true;
+    public void setColumnwidths(Float[] columnwidths_or_null, boolean write_null_values) {
+        // replaces the given columnwidths_or_null and only keep the number of columns given
+        // null values either overwrite or will be ignored
+        Integer tmp = null;
+        if (columnwidths_or_null != null) tmp = columnwidths_or_null.length;
+        if (preparegridsizes(tmp,true)) {
+            for (int i = 0; i <tmp;i++) {
+                setcheckedsize(columnwidths_or_null[i],i,write_null_values,false);
+            }
         }
     }
 
-    private boolean checkexistingwidth(Float[] givenfield) {
-        // delete the columnwitdhs
-        if (givenfield == null) {
-            columnwidths =null;
+
+    private boolean preparegridsizes(Integer givenfieldsize, boolean width) {
+        // prepares and adjust the size of the field(s) that hold columnwidth or rowheights
+        if (givenfieldsize == null) {
+            if (width) { //either columns or rows will be set null
+                columnwidths =null;
+            } else {
+                rowheight = null;
+            }
             for (Spatial p: this.getChildren()) {
                 Panel x = (Panel) p;
-                x.setPreferredSize(null);
+                x.setPreferredSize(null); //we set all sizes to 0 as we will recalculate them with next update
             }
             widthsupdate = true;
-            return false;
-        }
-        // or prepare if we have no columnwidths yet
-        Float[] tmp;
-        if (columnwidths == null) {
-            tmp = new Float[model.getColumnCount()];
-            columnwidths = tmp;
+            return false; // no more activity needed
         } else {
-            if (!(columnwidths.length ==model.getColumnCount() )) {
-                tmp = new Float[model.getColumnCount()];
+            Float[] tmp;
+            tmp = new Float[givenfieldsize];
+            if (width) {
+                if (columnwidths == null) {
+                    columnwidths = tmp;
+                    return true;
+                }
                 int i = 0;
                 for (Float z:columnwidths) {
                     tmp[i] =z;
                     i++;
-                    if (i>=model.getColumnCount()) break;
+                    if (i>= givenfieldsize) break;
                 }
-                columnwidths = tmp;
+                columnwidths = tmp; // we get what we have
+            } else {
+                if (rowheight == null) {
+                    rowheight = tmp;
+                    return true;
+                }
+                int i = 0;
+                for (Float z:rowheight) {
+                    tmp[i] =z;
+                    i++;
+                    if (i>= givenfieldsize) break;
+                }
+                rowheight = tmp; // we get what we have
             }
+            return true;
         }
-        return true;
     }
 
-    public Float[] getColumnwidths() {
-        return columnwidths;
+    private void setcheckedsize(Float size, int row_or_column, boolean override, boolean i_am_a_row) {
+        if (override || (size !=null))  {
+            if (i_am_a_row) {
+                rowheight[row_or_column] = size;
+            } else {
+                columnwidths[row_or_column] = size;
+            }
+            widthsupdate = true;
+        }
     }
+
+
+
+
+
+
+
+ //   public void setRowheight(Float rowheight_or_null){
+ //       if (rowheight_or_null<=0) return;
+ //       this.rowheight = rowheight_or_null;
+ //       widthsupdate = true;
+ //   }
+
+
 
 
 
