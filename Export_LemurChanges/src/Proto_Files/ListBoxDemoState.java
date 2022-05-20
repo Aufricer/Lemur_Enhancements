@@ -150,6 +150,26 @@ public class ListBoxDemoState extends BaseAppState {
         Container button5 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)));
         button5.addChild(new ActionButton(new CallMethodAction(this, "getValue_and_reset_Layout")));
 
+        //       Picture_Renderer PR = new Picture_Renderer();
+        //       ListBox LB = new ListBox(new VersionedList(), PR,"glass");
+        listBox2 = window.addChild(new ListBox(new VersionedList(),new Picture_Renderer(),null),1,1);
+        listBox2.setVisibleItems(5);
+        listBox2.getModel().add("LB - TextItem");
+        listBox2.setavailableColumns(3);
+        listBox2.setVisibleColumns(2);
+        String[] value = {"TextItem 2-1","<-TI 2-2"};
+        listBox2.add_Values(null, Arrays.asList(value));
+
+
+        Label L_vL1 = new Label("Value Listbox + Options");
+        L_vL1.setTextHAlignment(HAlignment.Center);
+        window.addChild(L_vL1,2,1);
+        Container button6 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)),3,1);
+        button6.addChild(new ActionButton(new CallMethodAction(this, "addButton")));
+        button6.addChild(new ActionButton(new CallMethodAction(this, "inc_rowheight")));
+        Container button7 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)),4,1);
+        button7.addChild(new ActionButton(new CallMethodAction(this, "change_row_columnheights")));
+
 
         // Add a close button to both show that the layout is working and
         // also because it's better UX... even if the popup will close if
@@ -159,23 +179,6 @@ public class ListBoxDemoState extends BaseAppState {
 
         // Position the window and pop it up
         window.setLocalTranslation(200, 400, 100);
-
- //       Picture_Renderer PR = new Picture_Renderer();
- //       ListBox LB = new ListBox(new VersionedList(), PR,"glass");
-        listBox2 = window.addChild(new ListBox(new VersionedList(),new Picture_Renderer(),null),1,1);
-        listBox2.setVisibleItems(5);
-        listBox2.getModel().add("LB - TextItem");
-        listBox2.setavailableColumns(3);
-        listBox2.setVisibleColumns(2);
-        String[] value = {"TextItem 2-1","TI 2-2"};
-        listBox2.add_Values(null, Arrays.asList(value));
-
-
-        Label L_vL1 = new Label("Value Listbox + Options");
-        L_vL1.setTextHAlignment(HAlignment.Center);
-        window.addChild(L_vL1,2,1);
-        Container button6 = window.addChild(new Container(new SpringGridLayout(Axis.X, Axis.Y)),3,1);
-        button6.addChild(new ActionButton(new CallMethodAction(this, "addButton")));
 
 
 
@@ -315,7 +318,7 @@ public class ListBoxDemoState extends BaseAppState {
         if (listBox.getGridPanel().getColumnwidths() ==null) {
             // Change the layout so we can see different column sizes
             listBox.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.ForcedEven, FillMode.None));
-            // Set a columnwidth for max 5 columns. Note: width is only set if column exist!
+            // Set a columnwidth for max 5 columns. Note: width is stored but only set if column exist!
             listBox.getGridPanel().setColumnwidths(new Float[]{120f, 80f, null, 100f, 60f}, true);
             //  listBox.getGridPanel().setHalignements(new HAlignment[]{HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right,HAlignment.Right});
             listBox.getGridPanel().setHalignements(HAlignment.Center,0);
@@ -442,13 +445,28 @@ public class ListBoxDemoState extends BaseAppState {
         vallist.add(extraButton);
         listBox2.add_Values(null, vallist);
 
-        //   getApplication().getAssetManager().registerLocator("C:\\Users\\Win7Pro64\\Desktop\\OSGCode\\Assets", FileLocator.class);
-        //   Attributes attrs = GuiGlobals.getInstance().getStyles().getSelector(new ElementId("exit").child("button"), "glass");
-        //   Texture txt = getApplication().getAssetManager().loadTexture("/Bilder/cancel.png");
-        //   QuadBackgroundComponent bgc1 = new QuadBackgroundComponent(txt);
-        //   attrs.set("background",bgc1);
     }
 
+    protected void inc_rowheight() {
+        // to have different rowheights we need to change the GridLayout
+        listBox2.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.ForcedEven));
+        Float[] fl = new Float[]{15f, null, 20f, 20f, null};
+        listBox2.getGridPanel().setRowheight(fl,true); //we set some heights
+        listBox2.getGridPanel().setRowheight(null); // but then set them all to 0
+        listBox2.getGridPanel().setRowheight(35f,0); // we just set the first row
+        // Note if there is still columnwidths stored due to ForcedEven the bigger value will be used for all columns
+    }
+
+
+    protected void change_row_columnheights() {
+        listBox2.getGridPanel().setLayout(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.None));
+        // we set zhe rowheights of the first 5 rows. Even if they are not present in LB they are stored
+        Float[] fl = new Float[]{25f, 30f, 35f, 40f, 45f};
+        listBox2.getGridPanel().setRowheight(fl);
+        // we also change the width of the two available columns
+        listBox2.getGridPanel().setColumnwidths(80f,0);
+        listBox2.getGridPanel().setColumnwidths(35f,1);
+    }
 
     private class Picture_Renderer<T> extends DefaultCellRenderer {
 
@@ -486,12 +504,9 @@ public class ListBoxDemoState extends BaseAppState {
              //       break;
                 case "String" :
                 default:
-                    if( existing == null || (!(existing instanceof Button) )) {
-                        existing = new Button(valueToString(value), getElementId(), getStyle());
-                    } else {
-                        ((Button) existing).setText(valueToString(value));
-                    }
-                    break;
+                      existing = new Button(valueToString(value), getElementId(), getStyle());
+                      // always a new Button (so the background / pictures a deleted from grid as well)
+                     break;
             }
             return existing;
         }
